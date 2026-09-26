@@ -1,0 +1,12 @@
+{"ts": "2026-09-20T08:00:01Z", "level": "INFO", "service": "receptionist", "message": "SIM call started: disclosure played first", "synthetic": true}
+{"ts": "2026-09-20T08:00:03Z", "level": "INFO", "service": "receptionist", "message": "SIM caller intake: city=SIM-City-A, scope=removal", "synthetic": true}
+{"ts": "2026-09-20T08:02:10Z", "level": "WARN", "service": "receptionist", "message": "SIM caller asked for a price; scripted pivot to free estimate", "synthetic": true}
+{"ts": "2026-09-20T08:15:44Z", "level": "INFO", "service": "permitting", "message": "SIM screen finished: label=L7 REVIEW NEEDED (stale snapshot)", "synthetic": true}
+{"ts": "2026-09-20T09:01:00Z", "level": "ERROR", "service": "router", "message": "SIM work order rejected: off-format (missing job id)", "synthetic": true}
+{"ts": "2026-09-20T09:05:12Z", "level": "INFO", "service": "dig-check", "message": "SIM dig check: can't confirm, don't dig (cached result)", "synthetic": true}
+{"ts": "2026-09-20T10:30:00Z", "level": "WARN", "service": "aloft", "message": "SIM aloft state stale; treated as aloft", "synthetic": true}
+{"ts": "2026-09-20T11:00:00Z", "level": "INFO", "service": "crew", "message": "SIM daily safety check shown after clock-in", "synthetic": true}
+{"ts": "2026-09-20T12:45:09Z", "level": "ERROR", "service": "receptionist", "message": "SIM speech vendor timeout; degraded mode (disclosure, 911 line, message only)", "synthetic": true}
+{"ts": "2026-09-20T13:00:00Z", "level": "INFO", "service": "scheduler", "message": "SIM slide-in proposal queued for owner approval", "synthetic": true}
+{"ts": "2026-09-20T14:20:31Z", "level": "WARN", "service": "storm-watch", "message": "SIM declaration source unreachable; banner shown", "synthetic": true}
+{"ts": "2026-09-20T15:00:00Z", "level": "INFO", "service": "outbox", "message": "SIM text held: no approval on file", "synthetic": true}

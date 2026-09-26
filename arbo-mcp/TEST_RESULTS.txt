@@ -1,0 +1,39 @@
+Test run: 2026-09-26T07:20:27Z  Python 3.11.15
+
+test_client_that_cannot_ask_mike_means_no (test_server.DeployNeedsMikesYes.test_client_that_cannot_ask_mike_means_no) ... ok
+test_deploy_code_cannot_run_programs (test_server.DeployNeedsMikesYes.test_deploy_code_cannot_run_programs) ... ok
+test_every_answer_other_than_an_explicit_yes_is_no (test_server.DeployNeedsMikesYes.test_every_answer_other_than_an_explicit_yes_is_no) ... ok
+test_explicit_yes_is_recorded_and_still_deploys_nothing (test_server.DeployNeedsMikesYes.test_explicit_yes_is_recorded_and_still_deploys_nothing) ... ok
+test_question_shows_target_reason_and_the_timeout_rule (test_server.DeployNeedsMikesYes.test_question_shows_target_reason_and_the_timeout_rule) ... ok
+test_full_session_yes_then_timeout (test_server.EndToEndOverStdio.test_full_session_yes_then_timeout) ... /home/user/arbo-mcp/tests/test_server.py:496: ResourceWarning: unclosed file <_io.TextIOWrapper name=5 encoding='utf-8'>
+  replies = self.run_session([
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+/home/user/arbo-mcp/tests/test_server.py:496: ResourceWarning: unclosed file <_io.TextIOWrapper name=7 encoding='utf-8'>
+  replies = self.run_session([
+ResourceWarning: Enable tracemalloc to get the object allocation traceback
+ok
+test_the_audit_hook_really_blocks_network (test_server.EndToEndOverStdio.test_the_audit_hook_really_blocks_network) ... ok
+test_editing_deleting_or_reordering_the_log_is_detected (test_server.EveryCallIsLogged.test_editing_deleting_or_reordering_the_log_is_detected) ... ok
+test_every_request_and_tool_call_is_in_the_log_and_the_chain_verifies (test_server.EveryCallIsLogged.test_every_request_and_tool_call_is_in_the_log_and_the_chain_verifies) ... ok
+test_if_the_log_cannot_be_written_the_call_is_refused_and_nothing_runs (test_server.EveryCallIsLogged.test_if_the_log_cannot_be_written_the_call_is_refused_and_nothing_runs) ... ok
+test_advertises_no_other_capabilities (test_server.ExactlyThreeTools.test_advertises_no_other_capabilities) ... ok
+test_bad_arguments_are_refused (test_server.ExactlyThreeTools.test_bad_arguments_are_refused) ... ok
+test_lists_exactly_the_three_tools (test_server.ExactlyThreeTools.test_lists_exactly_the_three_tools) ... ok
+test_other_mcp_methods_are_refused (test_server.ExactlyThreeTools.test_other_mcp_methods_are_refused) ... ok
+test_unknown_tool_is_refused_and_logged (test_server.ExactlyThreeTools.test_unknown_tool_is_refused_and_logged) ... ok
+test_data_is_synthetic_with_no_phone_numbers_or_emails (test_server.NoNetworkAndSyntheticOnly.test_data_is_synthetic_with_no_phone_numbers_or_emails) ... ok
+test_every_tool_works_with_sockets_disabled (test_server.NoNetworkAndSyntheticOnly.test_every_tool_works_with_sockets_disabled) ... ok
+test_no_source_file_imports_network_or_process_modules (test_server.NoNetworkAndSyntheticOnly.test_no_source_file_imports_network_or_process_modules) ... ok
+test_no_web_addresses_in_the_code_or_data (test_server.NoNetworkAndSyntheticOnly.test_no_web_addresses_in_the_code_or_data) ... ok
+test_data_files_are_unchanged_after_many_reads (test_server.ReadToolsCannotWrite.test_data_files_are_unchanged_after_many_reads) ... ok
+test_read_functions_themselves_refuse_to_write_under_a_guard (test_server.ReadToolsCannotWrite.test_read_functions_themselves_refuse_to_write_under_a_guard) ... ok
+test_read_tools_open_nothing_for_writing_except_the_call_log (test_server.ReadToolsCannotWrite.test_read_tools_open_nothing_for_writing_except_the_call_log) ... ok
+test_read_tools_return_synthetic_data (test_server.ReadToolsCannotWrite.test_read_tools_return_synthetic_data) ... ok
+test_a_yes_that_arrives_after_the_timeout_changes_nothing (test_server.TimeoutCountsAsNo.test_a_yes_that_arrives_after_the_timeout_changes_nothing) ... ok
+test_other_requests_during_the_wait_are_answered_afterwards (test_server.TimeoutCountsAsNo.test_other_requests_during_the_wait_are_answered_afterwards) ... ok
+test_silence_until_the_deadline_is_no (test_server.TimeoutCountsAsNo.test_silence_until_the_deadline_is_no) ... ok
+
+----------------------------------------------------------------------
+Ran 26 tests in 1.763s
+
+OK

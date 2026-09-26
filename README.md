@@ -10,6 +10,7 @@ touching live Arbo, real customers or real accounts.
 | `mcp/` | An MCP server that gives Claude and Grok the same context and a shared board. |
 | `mcp/BRIEF.md` | The ground rules every agent reads first (the `arbo_brief` tool). |
 | `board/` | Shared tasks and handoff log, written by the MCP server. |
+| `arbo-mcp/` | **Separate build from Grok Bot's Arbo Dream Brief handoff:** Arbo's own three-tool test MCP server (Python standard library only; synthetic data; deploys nothing). See `arbo-mcp/README.md` and `arbo-mcp/REVIEW_FOR_MIKE.md`. |
 
 ## Isolation (Mike, 2026-09-26: "keep it isolated")
 

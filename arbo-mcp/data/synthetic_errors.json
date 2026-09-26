@@ -1,0 +1,50 @@
+{
+  "synthetic": true,
+  "note": "Stand-in for error reports. Not connected to Sentry.",
+  "issues": [
+    {
+      "id": "SIM-ERR-0001",
+      "title": "SIM TimeoutError in speech vendor call",
+      "level": "error",
+      "status": "unresolved",
+      "count": 14,
+      "first_seen": "2026-09-18T07:10:00Z",
+      "last_seen": "2026-09-20T12:45:09Z",
+      "culprit": "sim.receptionist.voice",
+      "synthetic": true
+    },
+    {
+      "id": "SIM-ERR-0002",
+      "title": "SIM ValueError: work order missing job id",
+      "level": "error",
+      "status": "unresolved",
+      "count": 3,
+      "first_seen": "2026-09-20T09:01:00Z",
+      "last_seen": "2026-09-20T09:01:00Z",
+      "culprit": "sim.router.parse",
+      "synthetic": true
+    },
+    {
+      "id": "SIM-ERR-0003",
+      "title": "SIM ParseError: declaration page layout changed",
+      "level": "warning",
+      "status": "unresolved",
+      "count": 1,
+      "first_seen": "2026-09-20T14:20:31Z",
+      "last_seen": "2026-09-20T14:20:31Z",
+      "culprit": "sim.storm.parser",
+      "synthetic": true
+    },
+    {
+      "id": "SIM-ERR-0004",
+      "title": "SIM KeyError: gis snapshot id",
+      "level": "error",
+      "status": "resolved",
+      "count": 7,
+      "first_seen": "2026-09-10T10:00:00Z",
+      "last_seen": "2026-09-12T16:00:00Z",
+      "culprit": "sim.permitting.snapshot",
+      "synthetic": true
+    }
+  ]
+}
