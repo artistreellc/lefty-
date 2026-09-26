@@ -1,0 +1,477 @@
+/*
+  ═══════════════════════════════════════════════════════════════════════
+  SLOW::ARBO   ← this marker IS this note. Wherever it appears, all of
+               it applies: in a file, a commit, a doc, or from Mike.
+  STOP. READ THIS BEFORE YOU CHANGE ONE CHARACTER OF THIS FILE.
+  Owner instruction from Mike, 2026-08-03. This is not decoration and it
+  is not optional. It is here because this is the point in a build where
+  things get broken by moving fast, and that already happened to him once
+  on the website. It does not happen here.
+  ═══════════════════════════════════════════════════════════════════════
+
+  SLOW DOWN. DRASTICALLY. Then:
+
+  1. READ EVERY LINE BEFORE YOU EDIT ONE. Every line, every letter,
+     slowly. You are not skimming to find the spot to change — you are
+     building a model of what this file already does. If you cannot say
+     what the code above and below your edit does, you have not read it.
+
+  2. AN AUDIT IS READ-ONLY. If you were asked to audit, you do not edit.
+     You do not "fix it while you are in there." You do not refactor, or
+     tidy, or rename. You READ, and you REPORT. Editing during an audit
+     is disobeying the instruction, full stop.
+
+  3. THINK BEFORE YOU TYPE. What does this already handle? What depends
+     on it? What breaks downstream? Recognise the PATTERN before you call
+     something a bug — most things in here that look wrong are a
+     deliberate correction. Check docs/OWNER_RULINGS.md first. Use what
+     you already know about this codebase instead of re-deciding it.
+
+  4. BRING IT TO MIKE — DO NOT DECIDE IT. Anything that looks wrong,
+     ambiguous, or outside what was asked: say it and WAIT. Flagging
+     costs one sentence. Deciding on his behalf has cost real work and
+     real money more than once.
+
+  5. DO EXACTLY WHAT WAS ASKED. Not the adjacent thing. Not the bigger
+     thing you thought of on the way. Not the cleanup. Exactly what was
+     asked, and nothing else.
+
+  If you are moving fast right now, you are already off the rails.
+
+  Remember the marker: SLOW::ARBO
+*/
+import { describe, it, expect } from 'vitest';
+import { loadGuardrails, loadLegal } from '../src/config/loadConfig.js';
+import type { Alerter, ChatMessage, LlmClient } from '../src/reception/receptionist.js';
+import {
+  createElevenLabsBridge,
+  deriveSessionKey,
+  SESSION_TTL_MS,
+  type BridgeDeps,
+  type BridgeRequestBody,
+} from '../src/voice/elevenlabsBridge.js';
+import { createVoiceLlm, withFallback, VOICE_FALLBACK_LINE } from '../src/voice/anthropicLlm.js';
+import { createElevenLabsTts, GEORGE_VOICE_ID, TTS_MODEL, TTS_OUTPUT_FORMAT } from '../src/voice/elevenlabsTts.js';
+
+const g = loadGuardrails();
+const legal = loadLegal();
+const noPriceLine = g.goldenRules.find((r) => r.id === 'no-price')!.approvedLine;
+
+class FakeLlm implements LlmClient {
+  private i = 0;
+  constructor(private readonly script: string[]) {}
+  async complete(_system: string, _messages: ChatMessage[]): Promise<string> {
+    return this.script[this.i++] ?? 'How can I help with your trees today?';
+  }
+}
+class FakeAlerter implements Alerter {
+  public calls: Array<{ reason: string }> = [];
+  async emergency(p: { reason: string }): Promise<void> {
+    this.calls.push({ reason: p.reason });
+  }
+}
+
+const SECRET = 'test-bridge-secret';
+const AUTH = `Bearer ${SECRET}`;
+
+function makeBridge(overrides: Partial<BridgeDeps> = {}) {
+  const alerter = new FakeAlerter();
+  const bridge = createElevenLabsBridge({
+    guardrails: g,
+    legal,
+    llm: new FakeLlm(["Happy to help — what's the address?"]),
+    alerter,
+    bridgeSecret: SECRET,
+    ...overrides,
+  });
+  return { bridge, alerter };
+}
+
+function turnBody(texts: string[], extra: Partial<BridgeRequestBody> = {}): BridgeRequestBody {
+  return {
+    messages: texts.map((t, i) => ({ role: i % 2 === 0 ? 'user' : 'assistant', content: t })),
+    ...extra,
+  };
+}
+
+describe('ElevenLabs bridge — auth (fail closed)', () => {
+  it('refuses everything when no bridge secret is configured (503)', async () => {
+    const { bridge } = makeBridge({ bridgeSecret: undefined });
+    const out = await bridge.handle(AUTH, turnBody(['Hi']));
+    expect(out.status).toBe(503);
+  });
+
+  it('rejects a wrong or missing bearer token (401)', async () => {
+    const { bridge } = makeBridge();
+    expect((await bridge.handle('Bearer nope', turnBody(['Hi']))).status).toBe(401);
+    expect((await bridge.handle(undefined, turnBody(['Hi']))).status).toBe(401);
+  });
+
+  it('400s when there is no user message to answer', async () => {
+    const { bridge } = makeBridge();
+    const out = await bridge.handle(AUTH, { messages: [{ role: 'assistant', content: 'Hello!' }] });
+    expect(out.status).toBe(400);
+  });
+});
+
+describe('ElevenLabs bridge — chat-completions contract', () => {
+  it('returns an OpenAI-shaped JSON completion with the guarded reply', async () => {
+    const { bridge } = makeBridge({ llm: new FakeLlm(['That oak removal runs about $800.']) });
+    const out = await bridge.handle(AUTH, turnBody(['How much to remove my oak?']));
+    expect(out.status).toBe(200);
+    const body = out.json as { object: string; choices: Array<{ message: { role: string; content: string }; finish_reason: string }> };
+    expect(body.object).toBe('chat.completion');
+    expect(body.choices[0]!.finish_reason).toBe('stop');
+    // The guard is law even over the voice platform: the price never ships.
+    expect(body.choices[0]!.message.content).toBe(noPriceLine);
+    expect(body.choices[0]!.message.content).not.toContain('$');
+  });
+
+  it('streams SSE frames with the reply guarded BEFORE the first byte', async () => {
+    const { bridge } = makeBridge({ llm: new FakeLlm(['Just $500 for you!']) });
+    const out = await bridge.handle(AUTH, turnBody(['Price me a tree removal'], { stream: true }));
+    expect(out.status).toBe(200);
+    expect(out.sse).toBeDefined();
+    const frames = out.sse!;
+    expect(frames.at(-1)).toBe('data: [DONE]');
+    const contentFrame = frames
+      .filter((f) => f !== 'data: [DONE]')
+      .map((f) => JSON.parse(f.slice('data: '.length)) as { choices: Array<{ delta: { content?: string } }> })
+      .find((f) => f.choices[0]!.delta.content !== undefined)!;
+    expect(contentFrame.choices[0]!.delta.content).toBe(noPriceLine);
+    const finishFrame = JSON.parse(frames.at(-2)!.slice('data: '.length)) as { choices: Array<{ finish_reason: string | null }> };
+    expect(finishFrame.choices[0]!.finish_reason).toBe('stop');
+  });
+});
+
+describe('ElevenLabs bridge — sessions', () => {
+  it('keeps one Receptionist per conversation: emergency alert fires ONCE across turns', async () => {
+    const { bridge, alerter } = makeBridge({
+      llm: new FakeLlm(['Help is on the way.', 'Mike has been alerted and will call you right back.']),
+    });
+    const id = { conversation_id: 'conv-1' };
+    await bridge.handle(AUTH, turnBody(['A tree fell on my house!'], id));
+    await bridge.handle(AUTH, turnBody(['A tree fell on my house!', 'Help is on the way.', "It's still an emergency, hurry!"], id));
+    expect(alerter.calls).toHaveLength(1);
+    expect(bridge.sessionCount()).toBe(1);
+  });
+
+  it('falls back to a stable first-utterance key when the platform sends no id', async () => {
+    const { bridge } = makeBridge();
+    await bridge.handle(AUTH, turnBody(['Hello, I need some trimming']));
+    await bridge.handle(AUTH, turnBody(['Hello, I need some trimming', 'Sure!', 'It is at my place in Norfolk']));
+    expect(bridge.sessionCount()).toBe(1);
+  });
+
+  it('expires sessions after the TTL', async () => {
+    let t = 1_000_000;
+    const { bridge } = makeBridge({ now: () => t });
+    await bridge.handle(AUTH, turnBody(['Hi there'], { conversation_id: 'old-call' }));
+    expect(bridge.sessionCount()).toBe(1);
+    t += SESSION_TTL_MS + 1;
+    await bridge.handle(AUTH, turnBody(['New call'], { conversation_id: 'new-call' }));
+    expect(bridge.sessionCount()).toBe(1); // old-call swept, only new-call remains
+  });
+
+  it('prefers the explicit platform conversation id over the fallback hash', () => {
+    const withId = deriveSessionKey({ elevenlabs_extra_body: { conversation_id: 'abc' }, messages: [{ role: 'user', content: 'x' }] });
+    expect(withId).toBe('id:abc');
+    const hashed = deriveSessionKey({ messages: [{ role: 'user', content: 'x' }] });
+    expect(hashed.startsWith('h:')).toBe(true);
+  });
+});
+
+describe('voice LLM resilience', () => {
+  const failing: LlmClient = {
+    complete: async () => {
+      throw new Error('api down');
+    },
+  };
+
+  it('withFallback speaks the safe line on any model error', async () => {
+    const llm = withFallback(failing);
+    expect(await llm.complete('sys', [{ role: 'user', content: 'hi' }])).toBe(VOICE_FALLBACK_LINE);
+  });
+
+  it('withFallback replaces an empty model reply', async () => {
+    const llm = withFallback(new FakeLlm(['   ']));
+    expect(await llm.complete('sys', [{ role: 'user', content: 'hi' }])).toBe(VOICE_FALLBACK_LINE);
+  });
+
+  it('createVoiceLlm without a key is a static fallback client (bridge stays up)', async () => {
+    const llm = createVoiceLlm(undefined);
+    expect(await llm.complete('sys', [{ role: 'user', content: 'hi' }])).toBe(VOICE_FALLBACK_LINE);
+  });
+
+  it('the fallback line itself passes the output guard', async () => {
+    const { guardReply } = await import('../src/reception/outputGuard.js');
+    expect(guardReply(VOICE_FALLBACK_LINE, g).safe).toBe(true);
+  });
+});
+
+describe('ElevenLabs TTS client', () => {
+  it('POSTs the documented endpoint with voice, model, and format from the quickstart', async () => {
+    let captured: { url: string; init?: RequestInit } | null = null;
+    const fakeFetch = async (url: string, init?: RequestInit) => {
+      captured = { url, init };
+      return new Response(new Uint8Array([1, 2, 3]), { status: 200 });
+    };
+    const tts = createElevenLabsTts('xi-key', fakeFetch);
+    const bytes = await tts.synthesize('Good morning, Mike.');
+    expect(bytes).toEqual(new Uint8Array([1, 2, 3]));
+    expect(captured!.url).toBe(`https://api.elevenlabs.io/v1/text-to-speech/${GEORGE_VOICE_ID}?output_format=${TTS_OUTPUT_FORMAT}`);
+    expect(captured!.init!.headers).toMatchObject({ 'xi-api-key': 'xi-key' });
+    expect(JSON.parse(captured!.init!.body as string)).toEqual({ text: 'Good morning, Mike.', model_id: TTS_MODEL });
+  });
+
+  it('throws on an API error instead of returning garbage audio', async () => {
+    const tts = createElevenLabsTts('xi-key', async () => new Response('nope', { status: 401 }));
+    await expect(tts.synthesize('hello')).rejects.toThrow(/HTTP 401/);
+  });
+});
+
+describe('bridge status — the dashboard instrument (counts only, never content)', () => {
+  it('starts honest: zero counts and lastTurnAt null — null is not "no calls rendered as zero"', () => {
+    const { bridge } = makeBridge();
+    const s = bridge.status();
+    expect(s.configured).toBe(true);
+    expect(s.callsSinceBoot).toBe(0);
+    expect(s.turnsSinceBoot).toBe(0);
+    expect(s.lastTurnAt).toBeNull();
+    expect(s.emergencyCallsSinceBoot).toBe(0);
+    expect(s.guardBlockedTurnsSinceBoot).toBe(0);
+    expect(s.unauthorizedSinceBoot).toBe(0);
+    expect(typeof s.bootedAt).toBe('string');
+  });
+
+  it('counts calls once per session and turns per turn', async () => {
+    const { bridge } = makeBridge();
+    await bridge.handle(AUTH, turnBody(['Hi'], { conversation_id: 'call-1' }));
+    await bridge.handle(AUTH, turnBody(['Hi', 'ok', 'I need a tree trimmed'], { conversation_id: 'call-1' }));
+    await bridge.handle(AUTH, turnBody(['Hello'], { conversation_id: 'call-2' }));
+    const s = bridge.status();
+    expect(s.callsSinceBoot).toBe(2);
+    expect(s.turnsSinceBoot).toBe(3);
+    expect(typeof s.lastTurnAt).toBe('string');
+    expect(s.activeSessions).toBe(2);
+  });
+
+  it('counts an emergency call ONCE, not once per turn of the same call', async () => {
+    const { bridge } = makeBridge();
+    await bridge.handle(AUTH, turnBody(['A tree just fell on my house!'], { conversation_id: 'call-e' }));
+    await bridge.handle(AUTH, turnBody(['A tree just fell on my house!', 'ok', 'Please hurry'], { conversation_id: 'call-e' }));
+    expect(bridge.status().emergencyCallsSinceBoot).toBe(1);
+    expect(bridge.status().turnsSinceBoot).toBe(2);
+  });
+
+  it('counts guard-blocked turns — the instrument shows the guard working', async () => {
+    const { bridge } = makeBridge({ llm: new FakeLlm(['That usually runs about $800 for an oak that size.']) });
+    await bridge.handle(AUTH, turnBody(['How much to remove an oak?'], { conversation_id: 'call-g' }));
+    expect(bridge.status().guardBlockedTurnsSinceBoot).toBe(1);
+  });
+
+  it('counts rejected bearers — the repoint tripwire (a wrong ElevenLabs key must be VISIBLE)', async () => {
+    const { bridge } = makeBridge();
+    await bridge.handle('Bearer nope', turnBody(['Hi']));
+    await bridge.handle(undefined, turnBody(['Hi']));
+    expect(bridge.status().unauthorizedSinceBoot).toBe(2);
+    expect(bridge.status().turnsSinceBoot).toBe(0);
+  });
+
+  it('reports configured=false when no secret is set, alongside the 503', async () => {
+    const { bridge } = makeBridge({ bridgeSecret: undefined });
+    expect(bridge.status().configured).toBe(false);
+    expect((await bridge.handle(AUTH, turnBody(['Hi']))).status).toBe(503);
+  });
+
+  it('exposes exactly the promised keys — the type has no slot for caller content (§4.3)', () => {
+    const { bridge } = makeBridge();
+    expect(Object.keys(bridge.status()).sort()).toEqual([
+      'activeSessions', 'bootedAt', 'callsSinceBoot', 'configured', 'emergencyCallsSinceBoot',
+      'guardBlockedTurnsSinceBoot', 'lastTurnAt', 'turnsSinceBoot', 'unauthorizedSinceBoot',
+    ]);
+  });
+});
+
+describe('session rebuild — a redeploy mid-call must not lobotomise a live caller', () => {
+  class CapturingLlm implements LlmClient {
+    public lastMessages: ChatMessage[] = [];
+    public lastSystem = '';
+    async complete(system: string, messages: ChatMessage[]): Promise<string> {
+      this.lastSystem = system;
+      this.lastMessages = [...messages]; // copy — the receptionist appends her reply to this array after we return
+      return 'Got it — and what city is that in?';
+    }
+  }
+
+  const fullTranscript = (extra: Partial<BridgeRequestBody> = {}): BridgeRequestBody => ({
+    messages: [
+      { role: 'user', content: 'Hi, I need an estimate.' },
+      { role: 'assistant', content: "It sure is — my name's Arbo, who am I speaking with?" },
+      { role: 'user', content: 'My name is Testy, my number is 555-0142.' },
+      { role: 'assistant', content: 'Nice to meet you. What is the address?' },
+      { role: 'user', content: '123 Synthetic Ave.' },
+    ],
+    ...extra,
+  });
+
+  it('a fresh bridge (simulated restart) rebuilds the receptionist history from the resent transcript', async () => {
+    const llm = new CapturingLlm();
+    const { bridge } = makeBridge({ llm });
+    const out = await bridge.handle(AUTH, fullTranscript({ conversation_id: 'call-rebuild' }));
+    expect(out.status).toBe(200);
+    // The model must see the seeded prior turns AND the live turn — not just
+    // the last user message with amnesia for everything before the restart.
+    expect(llm.lastMessages.length).toBe(5);
+    expect(llm.lastMessages[0]!.content).toContain('need an estimate');
+    expect(llm.lastMessages[2]!.content).toContain('555-0142');
+    expect(llm.lastMessages[4]!.content).toContain('123 Synthetic Ave');
+  });
+
+  it('never fires a second emergency page for an emergency that predates the restart', async () => {
+    const { bridge, alerter } = makeBridge();
+    const body: BridgeRequestBody = {
+      conversation_id: 'call-em-rebuild',
+      messages: [
+        { role: 'user', content: 'A tree just fell on my house!' },
+        { role: 'assistant', content: 'That is an emergency — what is the address?' },
+        { role: 'user', content: '123 Synthetic Ave, please hurry.' },
+      ],
+    };
+    const out = await bridge.handle(AUTH, body);
+    expect(out.status).toBe(200);
+    expect(alerter.calls.length).toBe(0); // the pre-restart instance already paged
+    expect(bridge.status().emergencyCallsSinceBoot).toBe(1); // still counted as an emergency call
+  });
+
+  it('a first-turn call (no prior transcript) seeds nothing and behaves as before', async () => {
+    const llm = new CapturingLlm();
+    const { bridge } = makeBridge({ llm });
+    await bridge.handle(AUTH, turnBody(['Hi'], { conversation_id: 'call-fresh' }));
+    expect(llm.lastMessages.length).toBe(1);
+  });
+});
+
+describe('R15 routing hints — the model sees a conclusion, never a location', () => {
+  class SystemCapturingLlm implements LlmClient {
+    public lastSystem = '';
+    async complete(system: string): Promise<string> {
+      this.lastSystem = system;
+      return 'Happy to help — what else can I get for you?';
+    }
+  }
+  const anchors = () => ({ workZip: '23452', homeZip: '23451' });
+
+  it('a caller ZIP near the work anchor injects the conclusion-only context note', async () => {
+    const llm = new SystemCapturingLlm();
+    const { bridge } = makeBridge({ llm, routeAnchors: anchors });
+    await bridge.handle(AUTH, turnBody(['My address is 555 Synthetic Ave, Virginia Beach 23455.'], { conversation_id: 'c-r15' }));
+    expect(llm.lastSystem).toContain('CALL CONTEXT');
+    expect(llm.lastSystem).toContain('NEVER tell the caller where Mike is');
+    // The note carries no ZIP — the system prompt may not leak an anchor.
+    expect(llm.lastSystem.split('CALL CONTEXT')[1]).not.toMatch(/23\d{3}/);
+  });
+
+  it('no anchors configured → no note, even with a caller ZIP (§1B: unknown is never nearby)', async () => {
+    const llm = new SystemCapturingLlm();
+    const { bridge } = makeBridge({ llm }); // no routeAnchors dep at all
+    await bridge.handle(AUTH, turnBody(['I am at 23455.'], { conversation_id: 'c-r15b' }));
+    expect(llm.lastSystem).not.toContain('CALL CONTEXT');
+  });
+
+  it('a ZIP spoken BEFORE a restart still anchors the hint after the rebuild', async () => {
+    const llm = new SystemCapturingLlm();
+    const { bridge } = makeBridge({ llm, routeAnchors: anchors });
+    await bridge.handle(AUTH, {
+      conversation_id: 'c-r15c',
+      messages: [
+        { role: 'user', content: 'Hi, I am at 100 Synthetic Rd, 23452.' },
+        { role: 'assistant', content: 'Got it — what kind of project?' },
+        { role: 'user', content: 'A removal, probably.' },
+      ],
+    });
+    expect(llm.lastSystem).toContain('CALL CONTEXT');
+  });
+
+  it('a far ZIP gets no note — distance is never faked into convenience', async () => {
+    const llm = new SystemCapturingLlm();
+    const { bridge } = makeBridge({ llm, routeAnchors: () => ({ workZip: '23320', homeZip: null }) });
+    await bridge.handle(AUTH, turnBody(['I am out at 23666.'], { conversation_id: 'c-r15d' }));
+    expect(llm.lastSystem).not.toContain('CALL CONTEXT');
+  });
+});
+
+// ─── Mike, 2026-09-24: "she needs to hang up after saying have a good one" ───
+import { END_CALL_MARKER } from '../src/voice/elevenlabsBridge.js';
+import { buildReceptionistSystemPrompt } from '../src/reception/systemPrompt.js';
+
+describe('ElevenLabs bridge — end_call', () => {
+  const GOODBYE = `Thanks so much, Mike — have a good one! ${END_CALL_MARKER}`;
+  const TOOLS = { tools: [{ type: 'function', function: { name: 'end_call' } }] };
+
+  it('streams the goodbye without the marker, then the end_call tool call', async () => {
+    const { bridge } = makeBridge({ llm: new FakeLlm([GOODBYE]) });
+    const out = await bridge.handle(AUTH, turnBody(['Sounds good, thanks!'], { stream: true, ...TOOLS }));
+    expect(out.status).toBe(200);
+    const joined = out.sse!.join('\n');
+    expect(joined).not.toContain(END_CALL_MARKER); // the token is never spoken
+    expect(joined).toContain('have a good one!');
+    expect(joined).toContain('"end_call"');
+    expect(joined).toContain('"tool_calls"');
+    // the goodbye chunk comes BEFORE the tool call — spoken first, then hung up
+    const contentIdx = out.sse!.findIndex((f) => f.includes('have a good one'));
+    const toolIdx = out.sse!.findIndex((f) => f.includes('"end_call"'));
+    expect(contentIdx).toBeGreaterThan(-1);
+    expect(toolIdx).toBeGreaterThan(contentIdx);
+    expect(joined).toContain('"finish_reason":"tool_calls"');
+  });
+
+  it('JSON path: message carries content + tool_calls, finish_reason tool_calls', async () => {
+    const { bridge } = makeBridge({ llm: new FakeLlm([GOODBYE]) });
+    const out = await bridge.handle(AUTH, turnBody(['Bye!'], TOOLS));
+    const body = out.json as {
+      choices: Array<{ message: { content: string; tool_calls?: Array<{ function: { name: string } }> }; finish_reason: string }>;
+    };
+    expect(body.choices[0]!.message.content).not.toContain(END_CALL_MARKER);
+    expect(body.choices[0]!.message.tool_calls?.[0]?.function.name).toBe('end_call');
+    expect(body.choices[0]!.finish_reason).toBe('tool_calls');
+  });
+
+  it('no end_call tool offered: marker stripped, no tool call, degrades to stop', async () => {
+    const { bridge } = makeBridge({ llm: new FakeLlm([GOODBYE]) });
+    const out = await bridge.handle(AUTH, turnBody(['Bye!']));
+    const body = out.json as { choices: Array<{ message: { content: string; tool_calls?: unknown }; finish_reason: string }> };
+    expect(body.choices[0]!.message.content).not.toContain(END_CALL_MARKER);
+    expect(body.choices[0]!.message.tool_calls).toBeUndefined();
+    expect(body.choices[0]!.finish_reason).toBe('stop');
+  });
+
+  it('an ordinary mid-call reply never triggers end_call even with the tool offered', async () => {
+    const { bridge } = makeBridge({ llm: new FakeLlm(["What's the address for the property?"]) });
+    const out = await bridge.handle(AUTH, turnBody(['I need an estimate'], TOOLS));
+    const body = out.json as { choices: Array<{ finish_reason: string }> };
+    expect(body.choices[0]!.finish_reason).toBe('stop');
+  });
+});
+
+describe('prompt changes (Mike, 2026-09-24)', () => {
+  const prompt = buildReceptionistSystemPrompt(g, legal);
+
+  it('wrap-up teaches the goodbye-then-token pattern', () => {
+    expect(prompt).toContain('have a good one');
+    expect(prompt).toContain('[[END_CALL]]');
+    expect(prompt).toContain('never spoken');
+  });
+
+  it('the disclosure is quality purposes only — no "training"', () => {
+    expect(prompt).toContain('recorded for quality purposes');
+    expect(prompt).not.toContain('training purposes');
+  });
+
+  it('the adapt block outranks the checklist and bans invented availability', () => {
+    expect(prompt).toContain('outranks the question checklist');
+    expect(prompt).toContain('acknowledge that history warmly');
+    expect(prompt).toContain('NEVER assert availability');
+    expect(prompt).toContain('Mike will confirm');
+  });
+});

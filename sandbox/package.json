@@ -1,0 +1,37 @@
+{
+  "name": "arbo-sandbox",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "ISOLATED sandbox copy of ARBO (from artistreellc/Arbo @ 940caa9) — SIM data only, no live services",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "boot": "node --import tsx --import ./isolation/lock.mjs src/index.ts",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "check": "npm run typecheck && npm run lint && npm run test",
+    "serve": "node --import tsx --import ./isolation/lock.mjs src/server.ts",
+    "start": "node --import tsx --import ./isolation/lock.mjs src/server.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.115.0",
+    "@elevenlabs/convai-widget-embed": "^0.18.2",
+    "@supabase/supabase-js": "^2.47.10",
+    "dotenv": "^16.4.7",
+    "tsx": "^4.19.2",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.17.0",
+    "@types/node": "^22.10.0",
+    "@typescript-eslint/eslint-plugin": "^8.18.0",
+    "@typescript-eslint/parser": "^8.18.0",
+    "eslint": "^9.17.0",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

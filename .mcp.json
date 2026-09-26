@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "lefty-arbo": {
+      "command": "mcp/node_modules/.bin/tsx",
+      "args": ["mcp/src/stdio.ts"]
+    }
+  }
+}

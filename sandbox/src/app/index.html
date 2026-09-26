@@ -1,0 +1,3052 @@
+<!doctype html>
+<!--
+  ═══════════════════════════════════════════════════════════════════════
+  SLOW::ARBO   ← this marker IS this note. Wherever it appears, all of
+               it applies: in a file, a commit, a doc, or from Mike.
+  STOP. READ THIS BEFORE YOU CHANGE ONE CHARACTER OF THIS PAGE.
+  Owner instruction from Mike, 2026-08-03. This is not decoration and it
+  is not optional. It is here because this is the point in a build where
+  things get broken by moving fast, and that already happened to him once
+  on the website. It does not happen here.
+  ═══════════════════════════════════════════════════════════════════════
+
+  SLOW DOWN. DRASTICALLY. Then:
+
+  1. READ EVERY LINE BEFORE YOU EDIT ONE. Every line, every letter,
+     slowly. You are not skimming to find the spot to change — you are
+     building a model of what this file already does. If you cannot say
+     what the code above and below your edit does, you have not read it.
+
+  2. AN AUDIT IS READ-ONLY. If you were asked to audit, you do not edit.
+     You do not "fix it while you are in there." You do not refactor, or
+     tidy, or rename. You READ, and you REPORT. Editing during an audit
+     is disobeying the instruction, full stop.
+
+  3. THINK BEFORE YOU TYPE. What does this already handle? What depends
+     on it? What breaks downstream? Recognise the PATTERN before you call
+     something a bug — most things in here that look wrong are a
+     deliberate correction. Check docs/OWNER_RULINGS.md first. Use what
+     you already know about this codebase instead of re-deciding it.
+
+  4. BRING IT TO MIKE — DO NOT DECIDE IT. Anything that looks wrong,
+     ambiguous, or outside what was asked: say it and WAIT. Flagging
+     costs one sentence. Deciding on his behalf has cost real work and
+     real money more than once.
+
+  5. DO EXACTLY WHAT WAS ASKED. Not the adjacent thing. Not the bigger
+     thing you thought of on the way. Not the cleanup. Exactly what was
+     asked, and nothing else.
+
+  If you are moving fast right now, you are already off the rails.
+
+  Remember the marker: SLOW::ARBO
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F7F5F0">
+<link rel="manifest" href="/manifest.webmanifest">
+<link rel="apple-touch-icon" href="/icons/arbo-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Arbo">
+<title>Arbo — Art-is-Tree</title>
+<style>
+/* ARBO visual template v3 (Mike, 2026-09-24: match the website's quality).
+   The brand IS the website's: deep forest green #1B4D3E, warm gold, serif
+   display type, light premium surfaces — the same company in app form.
+   Self-contained by law: the serif stack is Georgia (no external fonts).
+   Old token NAMES are kept so every selector still resolves; the VALUES
+   are the brand's. */
+:root{
+  --forest:#1B4D3E; --forest-dark:#12362B; --canopy:#2A6B57; --moss:#8A9790;
+  --bark:#243B32; --clay:#B96A2C; --amber:#C9971C;
+  --ink:#182420; --surface:#FFFFFF; --raised:#FFFFFF; --surface-alt:#F5F3EC;
+  --border:rgba(27,77,62,.16); --hairline:rgba(27,77,62,.10); --muted:#5C6B63;
+  --emergency:#C2413B; --warning:#B8860B; --ok:#2E7D5B; --info:#2563EB;
+  --gold:#C9971C;
+  --r-sm:8px; --r-md:10px; --r-lg:14px; --r-pill:999px;
+  --serif:Georgia,'Times New Roman',serif;
+  --shadow-card:0 1px 2px rgba(27,77,62,.06),0 8px 24px -12px rgba(27,77,62,.18);
+  --shadow-pop:0 4px 14px -4px rgba(18,54,43,.35);
+  --ring:0 0 0 3px rgba(27,77,62,.22);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{
+  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:16px;line-height:1.5;color:var(--ink);background:var(--surface-alt);
+  -webkit-tap-highlight-color:transparent;overscroll-behavior-y:none;
+  padding-bottom:calc(76px + env(safe-area-inset-bottom));
+}
+::selection{background:rgba(201,151,28,.3)}
+button,input,select,textarea{font-family:inherit}
+button{transition:background-color .15s ease,border-color .15s ease,box-shadow .15s ease,opacity .15s ease,transform .08s ease}
+button:active{transform:scale(.98)}
+:focus-visible{outline:none;box-shadow:var(--ring);border-radius:var(--r-sm)}
+
+header{
+  background:rgba(255,255,255,.92);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  color:var(--ink);border-bottom:1px solid var(--hairline);
+  padding:10px 16px 10px;
+  padding-top:calc(10px + env(safe-area-inset-top));
+  position:sticky;top:0;z-index:10;
+}
+.hrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{font-family:var(--serif);font-size:22px;font-weight:700;letter-spacing:.05em;color:var(--forest);display:flex;align-items:center;gap:10px}
+.brand .mark{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:11px;
+  background:linear-gradient(150deg,var(--forest),var(--forest-dark));color:#EFE7CE;box-shadow:var(--shadow-pop)}
+.brand .micon{width:22px;height:22px}
+.brand small{font-family:var(--serif);color:var(--gold);font-weight:500;font-size:13px;letter-spacing:.14em;text-transform:uppercase;display:block;margin-top:1px}
+.brand > span{display:flex;flex-direction:column;line-height:1.05}
+#dateline{font-size:12.5px;color:var(--muted);margin-top:3px;display:none}
+#refresh,#settings-btn{
+  min-width:44px;min-height:44px;border:1px solid var(--border);border-radius:var(--r-md);
+  background:var(--surface);color:var(--forest);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;
+}
+#refresh .hico,#settings-btn .hico{width:20px;height:20px}
+#refresh:hover,#settings-btn:hover{background:var(--surface-alt)}
+#refresh:active,#settings-btn:active{opacity:.8}
+main{padding:16px;max-width:640px;margin:0 auto}
+.view{display:none}
+.view.active{display:block;animation:viewin .22s ease}
+@keyframes viewin{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* Summary chips */
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+.chip{
+  background:var(--surface);border:1px solid var(--border);border-radius:var(--r-pill);
+  padding:8px 15px;font-size:14px;font-weight:600;display:flex;align-items:center;gap:7px;color:var(--ink);
+}
+.chip b{font-family:var(--serif);font-variant-numeric:tabular-nums;font-size:18px;font-weight:700;color:var(--forest)}
+.chip.alert{border-color:rgba(194,65,59,.45);color:var(--emergency)}
+.zip-run{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:16px;font-size:14px;color:var(--muted);font-weight:600}
+.zip-run span{background:var(--forest);color:#fff;border-radius:var(--r-pill);padding:5px 13px;font-weight:600;font-size:13px}
+
+/* Cards */
+.card{
+  background:var(--surface);
+  border:1px solid var(--hairline);border-radius:var(--r-lg);
+  box-shadow:var(--shadow-card);padding:16px 18px;margin-bottom:12px;
+}
+.card.emergency{border-left:3px solid var(--emergency)}
+.card .toprow{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:4px}
+.card .who{font-family:var(--serif);font-size:18px;font-weight:700;line-height:1.25;color:var(--forest)}
+.card .when{font-variant-numeric:tabular-nums;font-size:14.5px;font-weight:700;color:var(--gold);white-space:nowrap}
+.card .addr{font-size:15.5px;margin:2px 0 8px}
+.card .addr a{color:var(--info);text-decoration:none;font-weight:500}
+.card .scope{font-size:14px;color:var(--muted);margin-bottom:8px}
+.badges{display:flex;flex-wrap:wrap;gap:6px}
+.badge{
+  font-size:10.5px;font-weight:700;letter-spacing:.07em;border-radius:var(--r-sm);
+  padding:3px 8px;border:1px solid transparent;text-transform:uppercase;
+}
+.b-job{background:var(--forest);color:#fff}
+.b-est{border-color:rgba(42,107,87,.45);color:var(--canopy)}
+.b-emg{background:var(--emergency);color:#fff}
+.b-flag{border-color:rgba(194,65,59,.5);color:var(--emergency)}
+.b-first{border-color:rgba(201,151,28,.55);color:#96700F}
+.b-repeat{border-color:rgba(138,151,144,.6);color:#5C6B63}
+.b-src{background:var(--surface-alt);color:var(--muted);border-color:var(--hairline)}
+.b-hot{background:var(--clay);color:#fff}
+.b-warm{background:var(--gold);color:#221A02}
+.b-cool{border-color:rgba(37,99,235,.4);color:var(--info)}
+.b-permit-likely{background:var(--gold);color:#221A02}
+.b-review{background:var(--info);color:#fff}
+.b-verify{border-color:var(--border);color:var(--muted)}
+.b-pending{background:var(--surface-alt);color:var(--muted);border-color:var(--hairline)}
+.ordernum{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:26px;height:26px;border-radius:50%;background:var(--forest);color:#fff;
+  font-size:13px;font-weight:700;margin-right:8px;flex:none;font-variant-numeric:tabular-nums;
+}
+.section-title{font-family:var(--serif);font-size:15px;font-weight:700;letter-spacing:.04em;color:var(--forest);margin:24px 0 10px}
+
+/* States */
+.state{
+  text-align:center;padding:40px 24px;color:var(--muted);font-size:15px;
+  background:var(--surface);border:1px dashed var(--border);border-radius:var(--r-lg);
+}
+.state b{display:block;font-family:var(--serif);font-size:19px;font-weight:700;color:var(--forest);margin-bottom:8px}
+
+/* Bottom nav — the dock */
+nav{
+  position:fixed;bottom:0;left:0;right:0;display:flex;
+  background:rgba(255,255,255,.94);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-top:1px solid var(--hairline);padding-bottom:env(safe-area-inset-bottom);z-index:10;
+  box-shadow:0 -4px 20px rgba(27,77,62,.07);
+}
+nav button{
+  flex:1 1 0;min-width:0;min-height:56px;border:0;background:none;font-size:9.5px;font-weight:600;
+  letter-spacing:-.01em;
+  color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;padding:7px 0 6px;
+  -webkit-user-select:none;user-select:none;
+}
+nav button .navpill{display:flex;flex-direction:column;align-items:center;gap:3px;border-radius:13px;padding:5px 4px;color:inherit;max-width:100%;transition:background-color .15s ease,color .15s ease}
+nav button .navpill span:last-child{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+nav button .ico{width:21px;height:21px}
+nav button.active{color:var(--forest)}
+nav button.active .navpill{background:var(--forest);color:#fff;box-shadow:var(--shadow-pop)}
+@media (min-width:420px){nav button{font-size:12px}nav button .navpill{padding:6px 13px}}
+
+/* Key overlay */
+#keywall{
+  position:fixed;inset:0;background:linear-gradient(170deg,#F7F5F0,#ECE7DA);color:var(--ink);z-index:100;
+  display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;text-align:center;
+}
+#keywall.show{display:flex}
+#keywall h1{font-family:var(--serif);font-size:38px;font-weight:700;letter-spacing:.08em;margin-bottom:6px;color:var(--forest)}
+#keywall p{color:var(--muted);margin-bottom:24px;max-width:320px}
+#keywall input{
+  width:100%;max-width:320px;min-height:56px;border:1px solid var(--border);background:#fff;color:var(--ink);border-radius:var(--r-md);
+  padding:0 16px;font-size:17px;margin-bottom:12px;text-align:center;
+}
+#keywall input:focus{border-color:var(--forest);outline:none;box-shadow:var(--ring)}
+#keywall button{
+  width:100%;max-width:320px;min-height:56px;border:0;border-radius:var(--r-md);
+  background:linear-gradient(180deg,var(--forest),var(--forest-dark));color:#fff;box-shadow:var(--shadow-pop);font-size:16px;font-weight:700;cursor:pointer;
+}
+.errline{color:var(--emergency);margin-top:12px;font-weight:600;min-height:24px}
+
+/* Callouts */
+.storm{
+  background:#FBEFEA;border:1px solid rgba(194,65,59,.3);border-left:3px solid var(--emergency);
+  color:#7C2B26;border-radius:var(--r-md);padding:13px 16px;
+  margin-bottom:14px;font-weight:600;font-size:14px;line-height:1.45;
+}
+.storm small{display:block;font-weight:500;opacity:.9;margin-top:4px}
+.storm-muted{color:var(--muted);font-size:13.5px;line-height:1.5;margin-bottom:12px}
+.loc-strip{display:flex;align-items:center;gap:10px;margin-bottom:12px;font-size:13.5px;color:var(--muted)}
+.loc-toggle{min-height:40px;border:1px solid var(--border);border-radius:var(--r-pill);background:var(--surface);
+  color:var(--muted);font-size:13px;font-weight:700;padding:0 18px;cursor:pointer;letter-spacing:.03em}
+.loc-toggle:hover{background:var(--surface-alt)}
+.loc-toggle.on{background:var(--forest);border-color:var(--forest);color:#fff}
+.late{background:#FBF3DF;border:1px solid rgba(184,134,11,.35);border-left:3px solid var(--gold);
+  color:#6E5308;border-radius:var(--r-md);padding:13px 16px;margin-bottom:14px;
+  font-weight:600;font-size:14px;line-height:1.45}
+.late small{display:block;font-weight:500;opacity:.95;margin-top:6px}
+.late .draft{background:rgba(255,255,255,.75);border-radius:var(--r-sm);padding:10px 12px;margin-top:8px;
+  font-weight:500;font-size:13px}
+.actbtn{
+  min-height:48px;border:0;border-radius:var(--r-md);background:linear-gradient(180deg,var(--forest),var(--forest-dark));color:#fff;
+  font-size:15px;font-weight:700;padding:0 20px;cursor:pointer;margin-top:10px;box-shadow:var(--shadow-pop);
+}
+.actbtn:disabled{opacity:.55}
+.actbtn.done{background:var(--surface);color:var(--ok);border:1px solid rgba(46,125,91,.45);box-shadow:none}
+.card.callback{border-left:3px solid var(--clay)}
+.cb-label{color:var(--clay);font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.actions{display:flex;gap:10px;margin-top:12px}
+.callbtn{flex:1;display:flex;align-items:center;justify-content:center;min-height:48px;
+  border-radius:var(--r-pill);background:linear-gradient(180deg,var(--forest),var(--forest-dark));color:#fff;font-size:15px;font-weight:700;
+  text-decoration:none;box-shadow:var(--shadow-pop)}
+.minibtn{min-height:48px;min-width:56px;border:1px solid var(--border);border-radius:var(--r-pill);
+  background:var(--surface);color:var(--ink);font-size:14px;font-weight:700;cursor:pointer;padding:0 16px}
+.minibtn:hover{background:var(--surface-alt)}
+.minibtn.ok{color:var(--ok);border-color:rgba(46,125,91,.45)}
+.minibtn.bad{color:var(--emergency);border-color:rgba(194,65,59,.35)}
+.card.dismissed{opacity:.4}
+/* Property twin sheet */
+.sheet{position:fixed;inset:0;background:var(--surface-alt);z-index:60;display:none;overflow-y:auto;
+  padding:0 16px calc(24px + env(safe-area-inset-bottom))}
+.sheet.show{display:block}
+.sheet-head{position:sticky;top:0;background:rgba(247,245,240,.95);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  display:flex;align-items:center;gap:12px;padding:14px 0;z-index:61;border-bottom:1px solid var(--hairline)}
+.sheet-head button{min-width:44px;min-height:44px;border:1px solid var(--border);border-radius:var(--r-md);
+  background:var(--surface);color:var(--ink);font-size:17px;cursor:pointer}
+#twin-title{font-family:var(--serif);font-size:18px;font-weight:700;line-height:1.25;color:var(--forest)}
+.sect{margin:20px 0 8px;font-family:var(--serif);font-size:14px;font-weight:700;letter-spacing:.03em;color:var(--forest)}
+.tl{border-left:2px solid var(--border);margin-left:6px;padding-left:14px}
+.tl .card{margin-bottom:10px}
+.due-note{background:#EDF3EF;border:1px solid rgba(27,77,62,.25);color:#194334;border-radius:var(--r-md);padding:10px 12px;
+  font-weight:600;font-size:13.5px;margin-top:8px}
+.routebtn{display:flex;align-items:center;justify-content:center;min-height:48px;border-radius:var(--r-md);
+  background:var(--surface);border:1px solid rgba(27,77,62,.35);color:var(--forest);font-size:14px;font-weight:700;
+  text-decoration:none;margin-bottom:14px}
+.routebtn:hover{background:var(--surface-alt)}
+
+/* HUD instruments */
+.hud{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.tile{
+  background:var(--surface);
+  border:1px solid var(--hairline);border-radius:var(--r-md);
+  padding:11px 12px 9px;box-shadow:var(--shadow-card);position:relative;overflow:hidden;
+}
+.tile b{display:block;font-family:var(--serif);font-variant-numeric:tabular-nums;
+  font-size:26px;font-weight:700;line-height:1.05;color:var(--forest)}
+.tile span{display:block;font-size:10px;font-weight:700;letter-spacing:.09em;
+  text-transform:uppercase;color:var(--muted);margin-top:4px}
+.tile.accent b{color:var(--gold)}
+.tile.hot{border-color:rgba(194,65,59,.4)}
+.tile.hot b{color:var(--emergency)}
+.tile.warn{border-color:rgba(184,134,11,.4)}
+.tile.warn b{color:var(--warning)}
+.tile.ok-t b{color:var(--ok)}
+.tile::after{content:'';position:absolute;left:0;top:8px;bottom:8px;width:2px;border-radius:2px;background:var(--forest);opacity:.5}
+.tile.hot::after{background:var(--emergency)}
+.tile.warn::after{background:var(--gold)}
+.hud .wide{grid-column:1 / -1}
+.panel-title{display:flex;align-items:center;gap:10px;font-family:var(--serif);font-size:15px;font-weight:700;
+  letter-spacing:.03em;color:var(--forest);margin:22px 0 10px}
+.panel-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+.loop-card{border-left:3px solid var(--gold)}
+.loop-card.urgent{border-left-color:var(--emergency)}
+.loop-kind{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:3px}
+.loop-card.urgent .loop-kind{color:var(--emergency)}
+.hudbtn{display:flex;align-items:center;justify-content:center;min-height:48px;border-radius:var(--r-md);
+  background:var(--surface);border:1px solid rgba(27,77,62,.3);color:var(--forest);font-size:14.5px;
+  font-weight:700;letter-spacing:.01em;text-decoration:none;cursor:pointer;width:100%;margin-bottom:10px;box-shadow:var(--shadow-card)}
+.hudbtn:hover{background:var(--surface-alt)}
+.card .field{margin-bottom:10px}
+.card .field input[type=text],.card .field input[type=date],.card .field select,.card .field textarea{
+  width:100%;min-height:48px;
+  border:1px solid var(--border);border-radius:var(--r-md);background:#fff;
+  color:var(--ink);font-size:16px;padding:12px;font-family:inherit;display:block}
+.card .field input:focus,.card .field select:focus,.card .field textarea:focus{border-color:var(--forest);outline:none;box-shadow:var(--ring)}
+.card .field textarea{min-height:76px;resize:vertical;line-height:1.45}
+#yard .field,#bd .field{margin-bottom:10px}
+#yard label,#bd label{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+#yard input,#yard select,#bd input[type=text]{width:100%;min-height:48px;border:1px solid var(--border);border-radius:var(--r-md);
+  background:#fff;color:var(--ink);font-size:17px;padding:0 12px;
+  font-variant-numeric:tabular-nums}
+#yard input:focus,#yard select:focus,#bd input[type=text]:focus{border-color:var(--forest);outline:none}
+#bd .checkfield{display:flex;align-items:center;gap:12px;min-height:56px;margin-bottom:12px}
+#bd .checkfield span{font-size:16px;font-weight:600;color:var(--ink);text-transform:none;letter-spacing:0}
+#bd #bd-out{padding-bottom:96px}
+#yard .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.verdict{border-radius:var(--r-md);padding:14px 16px;margin-top:14px;border:1px solid var(--hairline);background:var(--surface);box-shadow:var(--shadow-card)}
+.verdict .vline{font-variant-numeric:tabular-nums;font-size:14.5px;
+  display:flex;justify-content:space-between;padding:3px 0}
+.verdict .vhead{font-family:var(--serif);font-size:18px;font-weight:700;letter-spacing:.03em;margin-bottom:8px}
+.verdict.v-on{border-color:rgba(46,125,91,.45)}.verdict.v-on .vhead{color:var(--ok)}
+.verdict.v-below{border-color:rgba(184,134,11,.45)}.verdict.v-below .vhead{color:var(--warning)}
+.verdict.v-lose{border-color:rgba(194,65,59,.45)}.verdict.v-lose .vhead{color:var(--emergency)}
+.verdict .drv{font-size:13.5px;color:var(--muted);margin-top:8px;line-height:1.5}
+.internal-tag{font-size:10px;font-weight:700;letter-spacing:.1em;color:var(--muted);
+  text-transform:uppercase;margin-top:10px;opacity:.75}
+
+/* Calendar */
+#gcal-frame{width:100%;height:calc(100vh - 210px);min-height:420px;border:1px solid var(--hairline);
+  border-radius:var(--r-lg);background:var(--surface);box-shadow:var(--shadow-card)}
+.cal-open{display:flex;align-items:center;justify-content:center;min-height:48px;border-radius:var(--r-md);
+  background:var(--surface);border:1px solid var(--border);color:var(--forest);font-size:14px;font-weight:700;
+  text-decoration:none;margin-top:10px}
+.cal-open:hover{background:var(--surface-alt)}
+.cal-src{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);
+  margin-bottom:10px}
+.cal-day{margin-bottom:14px}
+.cal-daylabel{display:flex;align-items:baseline;gap:8px;font-family:var(--serif);font-size:14px;font-weight:700;
+  color:var(--forest);padding:6px 0;border-bottom:1px solid var(--hairline);margin-bottom:8px}
+.cal-day.today .cal-daylabel{color:var(--gold)}
+.cal-day.today .cal-daylabel::after{content:'TODAY';font-family:ui-sans-serif,system-ui,sans-serif;font-size:10px;background:var(--forest);color:#fff;
+  border-radius:var(--r-sm);padding:2px 7px;letter-spacing:.08em}
+.cal-empty{font-size:14px;color:var(--muted);opacity:.75;padding:4px 0 10px}
+.cal-ev{display:flex;gap:12px;align-items:flex-start;background:var(--surface);
+  border:1px solid var(--hairline);border-left:3px solid var(--forest);border-radius:var(--r-md);padding:12px 14px;margin-bottom:8px;
+  cursor:pointer;box-shadow:var(--shadow-card)}
+.cal-ev.est{border-left-color:var(--gold)}
+.cal-ev .t{font-variant-numeric:tabular-nums;font-size:14.5px;font-weight:700;
+  color:var(--forest);white-space:nowrap;min-width:78px}
+.cal-ev .body{flex:1;min-width:0}
+.cal-ev .who{font-family:var(--serif);font-size:16px;font-weight:700;line-height:1.3;color:var(--forest)}
+.cal-ev .where{font-size:13.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis}
+.cal-ev .gcal{color:var(--info);font-size:12px;font-weight:700;text-decoration:none;white-space:nowrap}
+
+/* Desktop */
+@media (min-width: 900px){
+  main{max-width:1080px;padding:24px 32px}
+  header .hrow{max-width:1080px;margin:0 auto;padding:0 16px}
+  .view.active{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+  #view-today.active{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+  #view-today .hud{grid-column:1 / -1;grid-template-columns:repeat(6,1fr)}
+  #view-today .hud .wide{grid-column:span 2}
+  .view .sect, .view .zip-run, .view .state, .view .panel-title,
+  .view .storm, .view .storm-muted, .view .routebtn, .view .hudbtn{grid-column:1 / -1}
+  #view-today > div:first-child{grid-column:1 / -1}
+  #view-today > div:not(.card):not(.hud){grid-column:1 / -1}
+  #loops-panel{grid-column:1 / -1;display:grid;grid-template-columns:1fr 1fr;
+    gap:16px;align-items:start}
+  #loops-panel .panel-title, #loops-panel .hudbtn{grid-column:1 / -1}
+  #loops-panel .card{margin-bottom:0}
+  #view-followups > div:first-child{grid-column:1 / -1;display:grid;
+    grid-template-columns:1fr 1fr;gap:16px;align-items:start}
+  #view-followups > div:first-child .panel-title{grid-column:1 / -1}
+  #view-followups > div:first-child .card{margin-bottom:0}
+  .card{margin-bottom:0}
+  nav{left:50%;transform:translateX(-50%);max-width:720px;border-radius:16px 16px 0 0;
+    border:1px solid var(--hairline);border-bottom:0}
+  .sheet{max-width:760px;left:50%;transform:translateX(-50%);border-left:1px solid var(--hairline);
+    border-right:1px solid var(--hairline)}
+}
+</style>
+</head>
+<body>
+
+<div id="keywall">
+  <h1>ARBO</h1>
+  <p>Art-is-Tree ops. Enter your access key — you only do this once per device.</p>
+  <input id="keyinput" type="password" inputmode="text" autocomplete="current-password" placeholder="Access key">
+  <button id="keygo">Open</button>
+  <div class="errline" id="keyerr"></div>
+</div>
+
+<header>
+  <div class="hrow">
+    <div>
+      <div class="brand"><span class="mark"><svg class="micon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 6.5 11h3L5 17h14l-4.5-6h3z"/><path d="M12 17v4"/></svg></span><span>ARBO<small>Art-is-Tree</small></span></div>
+      <div id="dateline"></div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button id="settings-btn" title="Settings" aria-label="Settings"><svg class="hico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12M20 17h0"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/></svg></button>
+      <button id="refresh" title="Refresh" aria-label="Refresh"><svg class="hico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 3.5V8h-4.5"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div id="view-today" class="view active"></div>
+  <div id="view-leads" class="view"></div>
+  <div id="view-cal" class="view"></div>
+  <div id="view-book" class="view"></div>
+  <div id="view-followups" class="view"></div>
+  <div id="view-calls" class="view"></div>
+  <div id="view-perf" class="view"></div>
+  <div id="view-settings" class="view"></div>
+</main>
+
+<div id="twin" class="sheet">
+  <div class="sheet-head">
+    <button id="twin-close" aria-label="Close">&#10005;</button>
+    <div id="twin-title"></div>
+  </div>
+  <div id="twin-body"></div>
+</div>
+
+<div id="yard" class="sheet">
+  <div class="sheet-head">
+    <button id="yard-close" aria-label="Close">&#10005;</button>
+    <div id="twin-title-yard" class="brand" style="font-size:18px">YARD CHECK</div>
+  </div>
+  <div class="field">
+    <label for="y-type">Job type</label>
+    <select id="y-type">
+      <option value="removal">Removal ($1,000/hr target)</option>
+      <option value="pruning">Pruning ($700/hr target)</option>
+      <option value="other">Other</option>
+    </select>
+  </div>
+  <div class="grid2">
+    <div class="field"><label for="y-hours">Truck-to-truck hrs</label><input id="y-hours" type="number" step="0.25" inputmode="decimal" placeholder="4"></div>
+    <div class="field"><label for="y-crew">Crew size</label><input id="y-crew" type="number" inputmode="numeric" placeholder="5"></div>
+  </div>
+  <div class="grid2">
+    <div class="field"><label for="y-price">Quote $</label><input id="y-price" type="number" inputmode="decimal" placeholder="4500"></div>
+    <div class="field"><label for="y-labor">Loaded $/man-hr</label><input id="y-labor" type="number" inputmode="decimal" placeholder="45"></div>
+  </div>
+  <div class="grid2">
+    <div class="field"><label for="y-equip">Equipment $ (opt.)</label><input id="y-equip" type="number" inputmode="decimal"></div>
+    <div class="field"><label for="y-dump">Dump fees $ (opt.)</label><input id="y-dump" type="number" inputmode="decimal"></div>
+  </div>
+  <button id="y-go" class="actbtn" style="width:100%">Run the number</button>
+  <div id="y-out"></div>
+  <div class="internal-tag">Internal instrument — never quoted to a customer (§6J2.5)</div>
+</div>
+
+<div id="bd" class="sheet">
+  <div class="sheet-head">
+    <button id="bd-close" aria-label="Close">&#10005;</button>
+    <div class="brand" style="font-size:18px">BREAKDOWN &mdash; <span id="bd-unit"></span></div>
+  </div>
+  <div class="field">
+    <label for="bd-desc">What happened?</label>
+    <input id="bd-desc" type="text" placeholder="Hydraulic hose blew on the chipper">
+  </div>
+  <label class="checkfield">
+    <input id="bd-down" type="checkbox" style="width:26px;height:26px;flex:none">
+    <span>It cannot be driven or run at all</span>
+  </label>
+  <button id="bd-go" class="actbtn" style="width:100%">File the report</button>
+  <div id="bd-out"></div>
+</div>
+
+<nav>
+  <button id="tab-today" class="active"><span class="navpill"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg><span>Today</span></span></button>
+  <button id="tab-leads"><span class="navpill"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7.5 12 13l9-5.5"/></svg><span>Leads</span></span></button>
+  <button id="tab-cal"><span class="navpill"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg><span>Calendar</span></span></button>
+  <button id="tab-book"><span class="navpill"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h11a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M9 4v13"/></svg><span>Book</span></span></button>
+  <button id="tab-followups"><span class="navpill"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.5 13a8.5 8.5 0 1 1-2.2-7.2"/><path d="M20.5 3v4h-4"/></svg><span>Queue</span></span></button>
+  <button id="tab-calls"><span class="navpill"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 4h4l1.5 4L8 10a13 13 0 0 0 6 6l2-2.5L20 15v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z"/></svg><span>Calls</span></span></button>
+  <button id="tab-perf"><span class="navpill"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg><span>Numbers</span></span></button>
+</nav>
+
+<script>
+'use strict';
+// All user-sourced text is rendered via textContent (XSS-safe by construction).
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, text) => {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+};
+
+let KEY = localStorage.getItem('arborKey') || '';
+
+async function api(path, opts) {
+  const res = await fetch(path, {
+    method: (opts && opts.method) || 'GET',
+    headers: Object.assign({ 'content-type': 'application/json' }, KEY ? { 'x-arbor-key': KEY } : {}),
+    body: opts && opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  if (res.status === 401) throw Object.assign(new Error('unauthorized'), { code: 401 });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw Object.assign(new Error(body.error || 'error'), { code: res.status });
+  return body;
+}
+
+function state(title, msg) {
+  const box = el('div', 'state');
+  box.appendChild(el('b', '', title));
+  box.appendChild(document.createTextNode(msg));
+  return box;
+}
+
+function fmtTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+function mapsLink(address, city) {
+  const a = el('a', '', address + (city ? ', ' + city : ''));
+  a.href = 'https://maps.google.com/?q=' + encodeURIComponent(address + ', ' + city + ', VA');
+  a.target = '_blank';
+  a.rel = 'noopener';
+  return a;
+}
+
+function badge(text, cls) { return el('span', 'badge ' + cls, text); }
+
+function permitBadge(lead) {
+  if (lead.permit) {
+    const s = lead.permit.screenStatus;
+    if (s === 'PERMIT_LIKELY') return badge('PERMIT LIKELY', 'b-permit-likely');
+    if (s === 'REVIEW_NEEDED') return badge('PERMIT: REVIEW NEEDED', 'b-review');
+    return badge('NO OVERLAY — VERIFY W/ CITY', 'b-verify');
+  }
+  if (lead.screenPending) return badge('PERMIT SCREEN PENDING', 'b-pending');
+  return null;
+}
+
+// ---------- Storm banner (§26: flags, never silently clear) ----------
+async function stormBanner() {
+  try {
+    const s = await api('/api/storm');
+    if (!s.alerts.length) return null;
+    const box = el('div', 'storm');
+    const worst = s.alerts[0];
+    box.appendChild(document.createTextNode('' + s.alerts.map(a => a.event).join(' · ')));
+    if (worst.headline) box.appendChild(el('small', '', worst.headline));
+    if (s.atRisk.length) box.appendChild(el('small', '', s.atRisk.length + ' booked stop(s) fall inside the alert window — consider moving them early.'));
+    return box;
+  } catch (e) {
+    // A dead weather feed is reported, never treated as clear skies.
+    return e.code === 503 ? el('div', 'storm-muted', 'Storm watch: weather feed unavailable right now.') : null;
+  }
+}
+
+// ---------- Location strip (§21–24: clear ON/OFF, recommend-only late cover) ----------
+async function locationStrip() {
+  let s;
+  try { s = await api('/api/location/status'); } catch (e) { return null; }
+  const wrap = el('div');
+  const strip = el('div', 'loc-strip');
+  const btn = el('button', 'loc-toggle' + (s.tracking ? ' on' : ''), s.tracking ? 'Tracking ON' : 'Tracking OFF');
+  btn.onclick = async () => {
+    btn.disabled = true;
+    try { await api('/api/location/tracking', { method: 'POST', body: { on: !s.tracking } }); } catch (e) {}
+    renderToday();
+  };
+  strip.appendChild(btn);
+  strip.appendChild(el('span', '', s.tracking
+    ? (s.lastPingIso ? 'last check-in ' + fmtTime(s.lastPingIso) : 'waiting for the first check-in')
+    : 'work-hours only — never after hours'));
+  wrap.appendChild(strip);
+  // #23: running-late cover. ARBOR drafts, Mike sends — never automatic.
+  if (s.late && (s.late.state === 'late' || s.late.state === 'tight')) {
+    const box = el('div', 'late');
+    box.appendChild(document.createTextNode(s.late.state === 'late'
+      ? 'Running behind for the next stop (~' + s.late.minutesBehind + ' min by distance).'
+      : 'Next stop is tight — about ' + s.late.minutesBehind + ' min behind by distance.'));
+    if (s.late.draftMessage) {
+      box.appendChild(el('small', '', 'Suggested text to the customer (you send it):'));
+      box.appendChild(el('div', 'draft', s.late.draftMessage));
+    }
+    wrap.appendChild(box);
+  }
+  return wrap;
+}
+
+// ---------- Inbox intents (R17 — mail that means something, surfaced; a dead feed NAMED, never a quiet zero) ----------
+async function inboxIntentPanel() {
+  let d;
+  try { d = await api('/api/inbox/intents'); }
+  catch (e) { return e.code === 401 ? null : el('div', 'storm-muted', 'Inbox intents: status unavailable right now.'); }
+  if (d.pipeline === 'not_started') return null;
+  const wrap = el('div');
+  const title = el('div', 'panel-title', 'Inbox — surfaced mail');
+  wrap.appendChild(title);
+
+  if (d.pipeline === 'no_gmail') {
+    wrap.appendChild(el('div', 'storm-muted',
+      'Gmail is not connected — the intent engine cannot look. This is not zero mail. (' + (d.gmailReason || 'no pass yet') + ')'));
+    return wrap;
+  }
+  if (d.pipeline === 'pattern_only') {
+    wrap.appendChild(el('div', 'storm-muted',
+      '⚠ Intent model unavailable — pattern matching only. Odd-format mail may sit in the ignored log.'));
+  }
+  if (d.model && d.model.consecutiveModelFailures >= 3) {
+    wrap.appendChild(el('div', 'storm',
+      '⚠ The intent model has failed ' + d.model.consecutiveModelFailures + ' times in a row (' + (d.model.lastModelErrorName || 'error') + ') — verdicts are pattern-only until it recovers.'));
+  }
+  if (d.zeroFlag) wrap.appendChild(el('div', 'late', '' + d.zeroFlag));
+  if (d.pendingCommit > 0) {
+    wrap.appendChild(el('div', 'storm-muted',
+      d.pendingCommit + ' in-app approval(s) live in memory only — they reset on a redeploy until committed to the repo.'));
+  }
+  {
+    const hud = el('div', 'hud');
+    const tile = (n, label, cls) => {
+      const x = el('div', 'tile' + (cls ? ' ' + cls : ''));
+      x.appendChild(el('b', '', String(n)));
+      x.appendChild(el('span', '', label));
+      return x;
+    };
+    hud.appendChild(tile(d.today.read, 'emails read'));
+    hud.appendChild(tile(d.today.surfaced, 'for you', d.today.surfaced > 0 ? 'accent' : ''));
+    hud.appendChild(tile(d.today.maybe, 'maybe', d.today.maybe > 0 ? 'warn' : ''));
+    wrap.appendChild(hud);
+  }
+
+  const intentCard = (it) => {
+    const c = el('div', 'card' + (it.contractApproval ? ' emergency' : ''));
+    c.appendChild(el('div', 'cb-label', it.intentLabel + (it.modelUnavailable ? ' · pattern-only' : '')));
+    const top = el('div', 'toprow');
+    top.appendChild(el('div', 'who', it.name || 'Unknown sender'));
+    top.appendChild(el('div', 'when', fmtTime(it.receivedAtIso)));
+    c.appendChild(top);
+    const where = [it.address, it.zip].filter(Boolean).join(' · ');
+    if (where) c.appendChild(el('div', 'addr', where));
+    if (it.subjectHint) c.appendChild(el('div', 'scope', it.subjectHint));
+    if (it.details) c.appendChild(el('div', 'scope', it.details));
+    c.appendChild(el('div', 'scope', it.reason));
+    const actions = el('div', 'actions');
+    if (it.phone) {
+      const call = el('a', 'callbtn', 'Call');
+      call.href = 'tel:' + it.phone;
+      actions.appendChild(call);
+    }
+    if (it.gmailLink) {
+      const open = el('a', 'minibtn', 'Open in Gmail ↗');
+      open.href = it.gmailLink; open.target = '_blank'; open.rel = 'noopener';
+      open.style.display = 'inline-flex'; open.style.alignItems = 'center'; open.style.textDecoration = 'none';
+      actions.appendChild(open);
+    }
+    c.appendChild(actions);
+    if (it.contractApproval) {
+      const conv = el('button', 'actbtn', 'Approved work — convert to job (asks first)');
+      conv.onclick = async () => {
+        conv.disabled = true;
+        try { await api('/api/inbox/convert', { method: 'POST', body: { threadId: it.threadId } }); }
+        catch (e) {
+          c.appendChild(el('div', 'storm-muted', e.message === 'links_cut'
+            ? 'Data links are cut — nothing to convert into yet. Nothing was changed.'
+            : 'Conversion lands with the links-live build. Nothing was changed.'));
+        }
+        conv.disabled = false;
+      };
+      c.appendChild(conv);
+    }
+    if (it.threadId) {
+      const row = el('div', 'actions');
+      const sel = el('select', 'minibtn');
+      sel.appendChild(new Option('Re-label…', ''));
+      for (const i of d.intents) sel.appendChild(new Option(i.label, i.id));
+      sel.appendChild(new Option('Ignore — not one to surface', 'ignored'));
+      sel.onchange = async () => {
+        if (!sel.value) return;
+        try { await api('/api/inbox/relabel', { method: 'POST', body: { threadId: it.threadId, intent: sel.value } }); renderToday(); }
+        catch (e) { sel.value = ''; }
+      };
+      row.appendChild(sel);
+      c.appendChild(row);
+    }
+    return c;
+  };
+
+  for (const it of d.surfaced.slice(0, 10)) wrap.appendChild(intentCard(it));
+  if (d.surfaced.length === 0 && d.maybe.length === 0) {
+    wrap.appendChild(el('div', 'storm-muted', 'Nothing surfaced right now — the engine is watching.'));
+  }
+  if (d.maybe.length > 0) {
+    wrap.appendChild(el('div', 'panel-title', 'Maybe — check this'));
+    for (const it of d.maybe.slice(0, 6)) wrap.appendChild(intentCard(it));
+  }
+  for (const p of (d.proposals || [])) {
+    const c = el('div', 'card');
+    c.appendChild(el('div', 'cb-label', 'Proposed new intent'));
+    c.appendChild(el('div', 'who', p.label));
+    c.appendChild(el('div', 'scope', 'Arbo keeps seeing mail like this — ' + p.sightings + ' sighting(s). Approve it to start surfacing them.'));
+    const row = el('div', 'actions');
+    const yes = el('button', 'minibtn ok', 'Approve');
+    yes.onclick = async () => { try { await api('/api/inbox/intents/approve', { method: 'POST', body: { id: p.id } }); renderToday(); } catch (e) {} };
+    const no = el('button', 'minibtn bad', 'Reject');
+    no.onclick = async () => { try { await api('/api/inbox/intents/reject', { method: 'POST', body: { id: p.id } }); renderToday(); } catch (e) {} };
+    row.appendChild(yes); row.appendChild(no);
+    c.appendChild(row);
+    wrap.appendChild(c);
+  }
+  // Catch-up sweep with a reach-back picker (Mike, 2026-09-24: "5 mins
+  // 15mins 30mins 1hr 1day 1week"). The engine's dedupe means running it
+  // twice never double-reports.
+  {
+    const row = el('div', 'actions');
+    const sel = el('select', 'minibtn');
+    for (const [mins, lab] of [[5, 'Last 5 minutes'], [15, 'Last 15 minutes'], [30, 'Last 30 minutes'], [60, 'Last hour'], [1440, 'Last day'], [10080, 'Last week']]) {
+      sel.appendChild(new Option(lab, String(mins)));
+    }
+    sel.value = '1440';
+    const cu = el('button', 'minibtn', 'Catch up');
+    cu.onclick = async () => {
+      cu.disabled = true; sel.disabled = true; cu.textContent = 'Scanning…';
+      const since = new Date(Date.now() - Number(sel.value) * 60 * 1000);
+      try {
+        const r = await api('/api/inbox/backfill', { method: 'POST', body: { sinceIso: since.toISOString() } });
+        cu.textContent = r.status === 'unavailable'
+          ? 'Could not scan — ' + (r.reason || 'inbox unavailable')
+          : '' + r.scanned + ' read — sorting continues for a few minutes';
+        setTimeout(() => renderToday(), 1500);
+      } catch (e) {
+        cu.disabled = false; sel.disabled = false;
+        cu.textContent = 'Failed — nothing scanned. Retry';
+      }
+    };
+    row.appendChild(sel); row.appendChild(cu);
+    wrap.appendChild(row);
+  }
+  // Ignored mail is filtered silently (Mike, 2026-09-24: no log on screen).
+  // The entries stay reviewable at /api/inbox/intents for debugging.
+  return wrap;
+}
+
+// ---------- Sona via Quo (Mike, 2026-09-24: "let sona handle it for a while while arbo learns from it") ----------
+// One renderer, two places: Today shows the latest few, Calls shows them all
+// with transcripts. A Quo that is not wired is NAMED, never a quiet zero (§1B).
+async function sonaPanel(limit, withTranscripts) {
+  let d;
+  try { d = await api('/api/quo'); }
+  catch (e) { return e.code === 401 ? null : el('div', 'storm-muted', 'Sona (Quo): status unavailable right now.'); }
+  const wrap = el('div');
+  wrap.appendChild(el('div', 'panel-title', 'Sona calls (Quo)'));
+  const st = d.status;
+  if (st.registration.state !== 'ok') {
+    wrap.appendChild(el('div', st.registration.state === 'failed' ? 'storm' : 'storm-muted', st.registration.detail));
+    if (st.registration.state === 'not_configured') return wrap;
+  }
+  if (!st.reading) {
+    wrap.appendChild(el('div', 'storm', 'Arbo cannot read Sona calls right now (no model key) — calls are kept, but no calendar holds are filed.'));
+  }
+  if (st.callsWithSlips > 0) {
+    wrap.appendChild(el('div', 'storm', 'Sona broke your rules on ' + st.callsWithSlips + ' call(s) — see the red cards. Call those customers back.'));
+  }
+  const rec = st.quoRecord || {};
+  if (rec.error) {
+    wrap.appendChild(el('div', 'storm', 'Arbo could not read Sona\u2019s calls from Quo (' + rec.error + ') \u2014 calls the webhook missed are not being learned. This is not zero calls.'));
+  }
+  const notUsed = Object.entries(st.notUsed || {});
+  if (notUsed.length) {
+    wrap.appendChild(el('div', 'storm', 'Quo sent ' + notUsed.reduce((n, [, k]) => n + k, 0) + ' event(s) Arbo could not use (' + notUsed.map(([r, k]) => k + ' ' + r).join(', ') + ') \u2014 Arbo reads those calls from Quo\u2019s record instead.'));
+  }
+  const sona = d.calls.filter((c) => c.handledBy === 'sona');
+  if (withTranscripts) {
+    wrap.appendChild(el('div', 'storm-muted', st.sonaCalls + ' Sona call(s) learned (' + (st.learnedFromRecord || 0) + ' read from Quo\u2019s record, last 7 days) \u00b7 ' + st.holdsAttempted + ' calendar hold(s) filed \u00b7 ' + st.hangups + ' hang-up(s) \u00b7 ' + st.callsWithSlips + ' with rule slips.'));
+  }
+  if (!sona.length) {
+    if (st.registration.state === 'ok' && !rec.error) {
+      wrap.appendChild(el('div', 'storm-muted', rec.lastAt ? 'No Sona calls in the last 7 days \u2014 checked against Quo\u2019s own record.' : 'Wired \u2014 reading Sona\u2019s calls from Quo\u2026'));
+    }
+    return wrap;
+  }
+  const holdText = {
+    attempted: 'Calendar hold filed (unconfirmed)',
+    not_requested: 'No estimate asked for',
+    hangup: 'Caller hung up',
+    extraction_unavailable: 'Arbo could not read this call — no hold filed',
+    no_writer: 'Calendar not connected — no hold filed',
+    learned_only: 'Learned from Quo\u2019s record after the fact \u2014 Arbo filed no hold. If they want an estimate, book it yourself.',
+    not_sona: '',
+  };
+  for (const c of sona.slice(0, limit)) {
+    const f = c.facts || {};
+    const card = el('div', 'card' + (c.slips.length || f.emergency ? ' emergency' : ''));
+    const top = el('div', 'toprow');
+    top.appendChild(el('div', 'who', f.name || c.from || 'Caller'));
+    top.appendChild(el('div', 'when', fmtTime(c.at)));
+    card.appendChild(top);
+    const b = el('div', 'badges');
+    if (f.emergency) b.appendChild(badge('EMERGENCY', 'b-emg'));
+    if (c.slips.length) b.appendChild(badge('SONA BROKE A RULE', 'b-emg'));
+    if (f.jobType) b.appendChild(badge(String(f.jobType).toUpperCase(), 'b-src'));
+    card.appendChild(b);
+    if (f.address) card.appendChild(el('div', 'addr', f.address + (f.city ? ', ' + f.city : '')));
+    if (c.summary && c.summary.length) card.appendChild(el('div', 'scope', c.summary.join(' ')));
+    else if (f.treeDetails) card.appendChild(el('div', 'scope', f.treeDetails));
+    if (f.requestedTime) card.appendChild(el('div', 'scope', 'Asked for: ' + f.requestedTime));
+    for (const sl of c.slips) card.appendChild(el('div', 'storm', 'Sona said: \u201c' + sl.said + '\u201d'));
+    if (holdText[c.hold]) card.appendChild(el('div', 'storm-muted', holdText[c.hold]));
+    const actions = el('div', 'actions');
+    if (c.from) { const call = el('a', 'callbtn', 'Call back'); call.href = 'tel:' + c.from; actions.appendChild(call); }
+    card.appendChild(actions);
+    if (withTranscripts && c.dialogue.length) {
+      const det = document.createElement('details');
+      det.appendChild(el('summary', '', 'Transcript (' + c.dialogue.length + ' lines)'));
+      for (const line of c.dialogue) det.appendChild(el('div', 'addr', (line.speaker === 'agent' ? 'Sona: ' : line.speaker === 'mike' ? 'You: ' : 'Caller: ') + line.text));
+      card.appendChild(det);
+    }
+    wrap.appendChild(card);
+  }
+  return wrap;
+}
+
+// ---------- Text outreach via Quo (R22 — "still interested in a quote?", past-week catch-up + 48h follow-ups) ----------
+async function outreachPanel(full) {
+  let d;
+  try { d = await api('/api/outreach'); }
+  catch (e) {
+    if (e.code === 401) return null;
+    const wrap0 = el('div');
+    wrap0.appendChild(el('div', 'panel-title', 'Text outreach'));
+    wrap0.appendChild(el('div', 'storm-muted', e.code === 503
+      ? 'Quo is not configured on the server \u2014 nothing can be texted. This is not zero candidates.'
+      : 'Text outreach: status unavailable right now.'));
+    return wrap0;
+  }
+  const st = d.status;
+  const wrap = el('div');
+  wrap.appendChild(el('div', 'panel-title', 'Text outreach'));
+  if (!st.wired) {
+    wrap.appendChild(el('div', 'storm-muted', 'Quo line not learned yet \u2014 nothing can be texted until Arbo registers with Quo at boot.'));
+    return wrap;
+  }
+  if (!st.template.ok) {
+    wrap.appendChild(el('div', 'storm', 'The text template fails the rules \u2014 NOTHING is sent: ' + st.template.problems.join('; ')));
+    return wrap;
+  }
+  if (st.paused) {
+    const why = { not_registered: 'Quo refused: texting registration not approved. In Quo: Settings \u2192 Trust center \u2192 complete US texting (A2P) registration. Queued texts wait.',
+                  daily_cap: 'Quo refused: daily texting cap reached. Queued texts wait for tomorrow.',
+                  unauthorized: 'Quo refused the API key.', subscription_expired: 'Quo says the subscription expired.' };
+    wrap.appendChild(el('div', 'storm', (why[st.paused.reason] || ('Quo refused: ' + st.paused.reason)) + ' Retry after ' + fmtTime(st.paused.until) + '.'));
+  }
+  const line = el('div', 'storm-muted', 'From ' + st.fromNumber + ' \u00b7 follow-ups ' + (st.autoFollowUps ? 'AUTOMATIC (48h after an inquiry, hourly check)' : 'OFF until ARBO_OUTREACH=live') + ' \u00b7 8am\u20139pm ET only \u00b7 STOP honored');
+  wrap.appendChild(line);
+  const hud = el('div', 'hud');
+  const tile = (n, label, cls) => { const x = el('div', 'tile' + (cls ? ' ' + cls : '')); x.appendChild(el('b', '', String(n))); x.appendChild(el('span', '', label)); return x; };
+  hud.appendChild(tile(st.candidates.eligible, 'ready to text', st.candidates.eligible > 0 ? 'accent' : ''));
+  hud.appendChild(tile(st.sent, 'sent'));
+  hud.appendChild(tile(st.queued, 'queued', st.queued > 0 ? 'warn' : ''));
+  wrap.appendChild(hud);
+  if (st.deferredUntil) wrap.appendChild(el('div', 'storm-muted', st.queued + ' text(s) waiting for quiet hours to end (' + fmtTime(st.deferredUntil) + ').'));
+  wrap.appendChild(el('div', 'scope', 'Template: \u201c' + st.template.text + '\u201d'));
+  const row = el('div', 'actions');
+  const pv = el('button', 'minibtn', st.lastRunAt ? 'Refresh list' : 'Find past-week callers');
+  pv.onclick = async () => { pv.disabled = true; pv.textContent = 'Checking Quo\u2026'; try { await api('/api/outreach/preview', { method: 'POST', body: {} }); } catch (e) {} renderToday(); };
+  row.appendChild(pv);
+  if (st.candidates.eligible > 0) {
+    const go = el('button', 'actbtn', 'Send catch-up to ' + st.candidates.eligible + ' now');
+    go.onclick = async () => {
+      go.disabled = true; go.textContent = 'Sending\u2026';
+      try { const r = await api('/api/outreach/catchup', { method: 'POST', body: {} }); go.textContent = r.queued + ' queued \u2014 going out one at a time'; }
+      catch (e) { go.textContent = 'Could not start \u2014 ' + (e.message || 'refused'); }
+      setTimeout(() => renderToday(), 2500);
+    };
+    row.appendChild(go);
+  }
+  wrap.appendChild(row);
+  const skipped = Object.entries(st.candidates.skipped || {});
+  if (skipped.length) {
+    const labels = { no_inbound: 'we called them, they never called us', opted_out: 'asked us to stop texting', already_texted: 'already heard from us', not_customer: 'solicitor or wrong number', own_number: 'our own number', excluded: 'you excluded', estimate_booked: 'estimate already booked', called_back: 'you already called them back', call_in_progress: 'on the phone right now', not_registered: 'held until Quo approves texting registration', unreadable: 'Arbo could not read the call or texts' };
+    wrap.appendChild(el('div', 'storm-muted', 'Not texting: ' + skipped.map(([k, n]) => n + ' ' + (labels[k] || k)).join(' \u00b7 ')));
+  }
+  if (full) {
+    for (const c of (d.candidates || []).filter((x) => !x.skip)) {
+      const card = el('div', 'card');
+      const top = el('div', 'toprow');
+      top.appendChild(el('div', 'who', c.number));
+      top.appendChild(el('div', 'when', c.lastInboundAt ? fmtTime(c.lastInboundAt) : ''));
+      card.appendChild(top);
+      card.appendChild(el('div', 'scope', c.inboundCalls + ' call(s), ' + c.inboundTexts + ' text(s) in \u00b7 ' + (c.classification === 'customer' ? 'asked about tree work' : c.classification === 'unclear' ? 'hung up or said little \u2014 could be a customer' : c.classification)));
+      const a = el('div', 'actions');
+      const ex = el('button', 'minibtn bad', 'Don\u2019t text');
+      ex.onclick = async () => { ex.disabled = true; try { await api('/api/outreach/exclude', { method: 'POST', body: { conversationId: c.conversationId } }); } catch (e) {} renderCalls(); };
+      a.appendChild(ex);
+      card.appendChild(a);
+      wrap.appendChild(card);
+    }
+    if ((d.sends || []).length) {
+      wrap.appendChild(el('div', 'panel-title', 'Texts Arbo sent'));
+      for (const r of d.sends.slice(0, 20)) {
+        const card = el('div', 'card' + (r.outcome === 'sent' ? '' : ' emergency'));
+        const top = el('div', 'toprow');
+        top.appendChild(el('div', 'who', r.number));
+        top.appendChild(el('div', 'when', fmtTime(r.at)));
+        card.appendChild(top);
+        card.appendChild(el('div', 'scope', r.outcome === 'sent' ? ('Sent (' + r.kind + ')' + (r.status ? ' \u00b7 ' + r.status : '')) : (r.outcome + ': ' + r.detail)));
+        wrap.appendChild(card);
+      }
+    }
+  }
+  return wrap;
+}
+
+// ---------- Website forms, direct wire (R19 — same submission that emails Mike, delivered to Arbo too) ----------
+async function websiteFormsPanel() {
+  let d;
+  try { d = await api('/api/webhooks/forms'); }
+  catch (e) { return e.code === 401 ? null : el('div', 'storm-muted', 'Website forms: status unavailable right now.'); }
+  const wrap = el('div');
+  wrap.appendChild(el('div', 'panel-title', 'Website forms — direct wire'));
+  if (!d.wired) {
+    // §1B: an unwired wire is NAMED. The Gmail sweep still catches these forms.
+    wrap.appendChild(el('div', 'storm-muted',
+      'Direct wire from Resend NOT connected yet — this is not zero forms. Submissions still reach Gmail and the sweep.'));
+    return wrap;
+  }
+  if (!d.forms.length) {
+    wrap.appendChild(el('div', 'storm-muted', 'Wired and listening — no submissions since deploy.'));
+    return wrap;
+  }
+  for (const f of d.forms.slice(0, 8)) {
+    const c = el('div', 'card');
+    c.appendChild(el('div', 'cb-label', 'Website form'));
+    const top = el('div', 'toprow');
+    top.appendChild(el('div', 'who', f.name));
+    top.appendChild(el('div', 'when', fmtTime(f.at)));
+    c.appendChild(top);
+    if (f.address) c.appendChild(el('div', 'addr', f.address));
+    if (f.service) c.appendChild(el('div', 'scope', f.service + (f.timeline ? ' · ' + f.timeline : '')));
+    if (f.message) c.appendChild(el('div', 'scope', f.message));
+    if (f.bodyState === 'subject_only') {
+      c.appendChild(el('div', 'storm-muted', 'Body not fetched — name and service from the subject only. The full form is in Gmail.'));
+    }
+    const actions = el('div', 'actions');
+    if (f.phone) { const call = el('a', 'callbtn', 'Call'); call.href = 'tel:' + f.phone; actions.appendChild(call); }
+    c.appendChild(actions);
+    wrap.appendChild(c);
+  }
+  return wrap;
+}
+
+// ---------- Reception strip (the phone line as an instrument — §1B: counts, or the reason there are none) ----------
+async function receptionStrip() {
+  let s;
+  try { s = await api('/api/reception/status'); }
+  catch (e) { return e.code === 401 ? null : el('div', 'storm-muted', 'Reception: status unavailable right now.'); }
+  const wrap = el('div');
+  // R21: Arbo's own line is cut on purpose while Sona handles calls — a
+  // named state, not an alarm, and Talk to Arbo goes away with it.
+  if (s.linkCut) {
+    const tb = document.getElementById('talk-btn');
+    if (tb) tb.remove();
+    wrap.appendChild(el('div', 'storm-muted', 'Arbo\u2019s own phone line (ElevenLabs + Twilio) is disconnected while Sona handles calls. Nothing was deleted.'));
+    return wrap;
+  }
+  if (!s.configured) {
+    wrap.appendChild(el('div', 'storm', 'Reception bridge NOT configured \u2014 no bridge secret on the server. Calls cannot reach ARBO.'));
+    return wrap;
+  }
+  if (s.unauthorizedSinceBoot > 0) {
+    // The repoint tripwire: a wrong ElevenLabs key otherwise fails SILENTLY into the platform's fallback model.
+    wrap.appendChild(el('div', 'storm', '' + s.unauthorizedSinceBoot + ' rejected call attempt(s) since deploy \u2014 the ElevenLabs key does not match the bridge secret. Callers are NOT reaching the guarded brain.'));
+  }
+  const strip = el('div', 'loc-strip');
+  strip.appendChild(el('span', '', s.turnsSinceBoot === 0
+    ? 'Reception ready \u2014 no calls since deploy (' + fmtTime(s.bootedAt) + ')'
+    : '' + s.callsSinceBoot + ' call(s) \u00b7 ' + s.turnsSinceBoot + ' turn(s) since deploy \u00b7 last ' + fmtTime(s.lastTurnAt)));
+  wrap.appendChild(strip);
+  if (!s.llmKeyPresent) wrap.appendChild(el('div', 'storm-muted', 'LLM key missing on the server \u2014 callers hear only the safe fallback line.'));
+  if (s.emergencyCallsSinceBoot > 0) wrap.appendChild(el('div', 'storm', '' + s.emergencyCallsSinceBoot + ' emergency call(s) since deploy \u2014 details are in the ElevenLabs dashboard, not here.'));
+  if (s.guardBlockedTurnsSinceBoot > 0) wrap.appendChild(el('div', 'storm-muted', 'Guard intervened on ' + s.guardBlockedTurnsSinceBoot + ' turn(s) \u2014 blocked replies were replaced with approved lines.'));
+  return wrap;
+}
+
+// ---------- Today (Morning Brief) ----------
+async function renderToday() {
+  const v = $('view-today');
+  v.replaceChildren();
+  stormBanner().then((b) => { if (b) v.prepend(b); });
+  const locSlot = el('div');
+  v.appendChild(locSlot);
+  locationStrip().then((b) => { if (b) locSlot.appendChild(b); });
+  const recSlot = el('div');
+  v.appendChild(recSlot);
+  receptionStrip().then((b) => { if (b) recSlot.appendChild(b); });
+  // Talk to Arbo lives ABOVE the brief fetch on purpose: the first version
+  // sat in the post-brief section, and with the data links cut the brief's
+  // early return meant the button never rendered — on production, exactly.
+  const talkBtn = el('button', 'hudbtn', 'Talk to Arbo');
+  talkBtn.id = 'talk-btn';
+  talkBtn.addEventListener('click', () => window.open('/talk', '_blank', 'noopener'));
+  v.appendChild(talkBtn);
+  // Surfaced mail (R17) ALSO lives above the brief fetch \u2014 same lesson as
+  // the talk button: with the links cut the brief 503s and returns early,
+  // and anything below that line never renders in production.
+  const inboxSlot = el('div');
+  v.appendChild(inboxSlot);
+  inboxIntentPanel().then((b) => { if (b) inboxSlot.appendChild(b); });
+  // R22 text outreach — above the brief fetch, same links-cut lesson.
+  const outreachSlot = el('div');
+  v.appendChild(outreachSlot);
+  outreachPanel(false).then((b) => { if (b) outreachSlot.appendChild(b); });
+  // Sona via Quo — above the brief fetch, same links-cut lesson.
+  const sonaSlot = el('div');
+  v.appendChild(sonaSlot);
+  sonaPanel(3, false).then((b) => { if (b) sonaSlot.appendChild(b); });
+  // R19: website forms delivered straight from Resend — above the brief
+  // fetch for the same links-cut-early-return reason as everything here.
+  const formsSlot = el('div');
+  v.appendChild(formsSlot);
+  websiteFormsPanel().then((b) => { if (b) formsSlot.appendChild(b); });
+  const start = new Date(); start.setHours(0, 0, 0, 0);
+  const end = new Date(start); end.setDate(end.getDate() + 1);
+  let brief;
+  try {
+    brief = await api('/api/brief?from=' + start.toISOString() + '&to=' + end.toISOString());
+  } catch (e) {
+    if (e.code === 401) return showKeywall();
+    v.appendChild(state('No schedule yet', e.code === 503
+      ? 'Database not connected — the day’s route shows up the moment it is.'
+      : 'Could not load the brief. Pull refresh to retry.'));
+    return;
+  }
+  const s = brief.summary;
+  // §9 HUD: the day as instruments — one glance, biggest number wins.
+  const hud = el('div', 'hud');
+  const tile = (n, label, cls) => {
+    const t = el('div', 'tile' + (cls ? ' ' + cls : ''));
+    t.appendChild(el('b', '', String(n)));
+    t.appendChild(el('span', '', label));
+    return t;
+  };
+  hud.appendChild(tile(s.totalStops, 'stops', 'accent'));
+  hud.appendChild(tile(s.jobs || 0, 'jobs'));
+  hud.appendChild(tile(s.estimates || 0, 'estimates'));
+  const loopTile = tile('–', 'open loops');
+  const dueTile = tile('–', 'coming due');
+  const agentTile = tile('–', 'agent runs');
+  const owedTile = tile('–', 'overdue');
+  hud.appendChild(loopTile);
+  hud.appendChild(dueTile);
+  hud.appendChild(agentTile);
+  hud.appendChild(owedTile);
+  if (s.redFlagCount) hud.appendChild(tile(s.redFlagCount, 'red flags', 'hot wide'));
+  if (s.emergencies) hud.appendChild(tile(s.emergencies, 'emergencies', 'hot wide'));
+  v.appendChild(hud);
+  const yardBtn = el('button', 'hudbtn', '⚙ Yard check — run a number');
+  yardBtn.addEventListener('click', openYard);
+  v.appendChild(yardBtn);
+  const loopsPanel = el('div');
+  loopsPanel.id = 'loops-panel';
+  v.appendChild(loopsPanel);
+  const setTile = (t, n, cls) => {
+    t.querySelector('b').textContent = String(n);
+    if (cls) t.classList.add(cls);
+  };
+  // Each instrument fills independently; a dead feed shows '–', never a fake 0.
+  api('/api/queue').then((q) => {
+    setTile(loopTile, q.open.length, q.open.some(o => o.severity === 'urgent') ? 'hot' : (q.open.length ? 'warn' : 'ok-t'));
+    if (q.open.length) {
+      loopsPanel.appendChild(el('div', 'panel-title', 'Open loops — silence is never success'));
+      for (const o of q.open.slice(0, 3)) loopsPanel.appendChild(loopCard(o));
+      if (q.open.length > 3) {
+        const more = el('button', 'hudbtn', 'All ' + q.open.length + ' open loops →');
+        more.addEventListener('click', () => switchTab('followups'));
+        loopsPanel.appendChild(more);
+      }
+    }
+  }).catch(() => {});
+  api('/api/properties').then((p) => {
+    // A dead forecast feed stays '\u2013' \u2014 null is not zero (\u00a71B honesty).
+    if (Array.isArray(p.comingDue)) setTile(dueTile, p.comingDue.length, p.comingDue.length ? 'warn' : 'ok-t');
+  }).catch(() => {});
+  api('/api/agents/runs?limit=5').then((r) => {
+    setTile(agentTile, r.runs.length, r.runs.some(x => x.status === 'error') ? 'warn' : 'ok-t');
+  }).catch(() => {});
+  api('/api/money').then((m) => {
+    // Unbilled work counts as money out the door just as much as unpaid ones.
+    const n = m.collections.length + m.drafts.length;
+    setTile(owedTile, n, n ? (m.collections.length ? 'hot' : 'warn') : 'ok-t');
+  }).catch(() => {});
+
+  if (s.zipRun && s.zipRun.length) {
+    const zr = el('div', 'zip-run');
+    zr.appendChild(document.createTextNode('ZIP run:'));
+    s.zipRun.forEach(z => zr.appendChild(el('span', '', z)));
+    v.appendChild(zr);
+  }
+
+  if (!brief.stops.length) {
+    v.appendChild(state('Nothing on the books today', 'New bookings land here automatically.'));
+    return;
+  }
+  v.appendChild(el('div', 'panel-title', "Today's run"));
+  // §9 route view: the whole day, one tap, in the maps app you already use.
+  {
+    const addrs = brief.stops.map(s => s.address + ', ' + s.city + ', VA').filter(Boolean);
+    if (addrs.length) {
+      const r = el('a', 'routebtn', 'Route the day (' + addrs.length + ' stops)');
+      const dest = encodeURIComponent(addrs[addrs.length - 1]);
+      const wps = addrs.slice(0, -1).map(encodeURIComponent).join('|');
+      r.href = 'https://www.google.com/maps/dir/?api=1&destination=' + dest + (wps ? '&waypoints=' + wps : '');
+      r.target = '_blank';
+      r.rel = 'noopener';
+      v.appendChild(r);
+    }
+  }
+  for (const stop of brief.stops) {
+    const c = el('div', 'card' + (stop.redFlags.length ? ' emergency' : ''));
+    const top = el('div', 'toprow');
+    const who = el('div', 'who');
+    who.appendChild(el('span', 'ordernum', String(stop.order)));
+    who.appendChild(document.createTextNode(stop.name || 'Unnamed'));
+    top.appendChild(who);
+    top.appendChild(el('div', 'when', fmtTime(stop.timeIso)));
+    c.appendChild(top);
+    const addr = el('div', 'addr');
+    addr.appendChild(mapsLink(stop.address, stop.city));
+    c.appendChild(addr);
+    if (stop.scope) c.appendChild(el('div', 'scope', stop.scope));
+    const b = el('div', 'badges');
+    b.appendChild(badge(stop.kind === 'job' ? 'JOB' : 'ESTIMATE', stop.kind === 'job' ? 'b-job' : 'b-est'));
+    stop.redFlags.forEach(f => b.appendChild(badge(f, f === 'EMERGENCY' ? 'b-emg' : 'b-flag')));
+    stop.tags.forEach(t => {
+      if (t === 'FIRST-TIMER') b.appendChild(badge(t, 'b-first'));
+      else if (t === 'REPEAT') b.appendChild(badge(t, 'b-repeat'));
+      else b.appendChild(badge(t, 'b-src'));
+    });
+    c.appendChild(b);
+    v.appendChild(c);
+  }
+}
+
+// ---------- Open loops (§1E backup brain: what the day left behind) ----------
+const LOOP_LABEL = {
+  estimate_went_quiet: 'Estimate went quiet',
+  won_but_never_booked: 'Won — never booked',
+  job_never_closed: 'Job never closed out',
+  work_done_never_billed: 'Work done — never billed',
+  callback_still_open: 'Callback still open',
+};
+function loopCard(o) {
+  const c = el('div', 'card loop-card' + (o.severity === 'urgent' ? ' urgent' : ''));
+  c.appendChild(el('div', 'loop-kind', (o.severity === 'urgent' ? '⚠ ' : '') + (LOOP_LABEL[o.kind] || o.kind)));
+  c.appendChild(el('div', 'scope', o.line));
+  return c;
+}
+
+// ---------- Yard check (§6J2: the pricing instrument, internal only) ----------
+function openYard() { $('yard').classList.add('show'); }
+$('yard-close').addEventListener('click', () => $('yard').classList.remove('show'));
+$('y-go').addEventListener('click', async () => {
+  const out = $('y-out');
+  out.replaceChildren();
+  const num = (id) => { const x = Number($(id).value); return Number.isFinite(x) && $(id).value !== '' ? x : undefined; };
+  const body = {
+    jobType: $('y-type').value,
+    truckToTruckHours: num('y-hours'),
+    crewSize: num('y-crew'),
+    quotedPrice: num('y-price'),
+    loadedLaborPerManHour: num('y-labor'),
+    equipmentCost: num('y-equip'),
+    dumpFees: num('y-dump'),
+  };
+  let r;
+  try {
+    r = await api('/api/estimating/check', { method: 'POST', body });
+  } catch (e) {
+    out.appendChild(el('div', 'errline', e.code === 400 ? 'Fill in hours, crew, quote, and labor rate.' : 'Could not run the check — try again.'));
+    return;
+  }
+  const box = el('div', 'verdict ' + (r.verdict === 'ON_TARGET' ? 'v-on' : r.verdict === 'BELOW_TARGET' ? 'v-below' : 'v-lose'));
+  box.appendChild(el('div', 'vhead', r.verdict === 'ON_TARGET' ? '✓ ON TARGET' : r.verdict === 'BELOW_TARGET' ? '△ BELOW TARGET' : '✕ LOSES MONEY'));
+  const line = (k, val) => {
+    const d = el('div', 'vline');
+    d.appendChild(el('span', '', k));
+    d.appendChild(el('span', '', val));
+    return d;
+  };
+  box.appendChild(line('effective rate', '$' + Math.round(r.effectiveRatePerHr) + '/hr vs $' + r.targetRatePerHr));
+  box.appendChild(line('all-in cost', '$' + Math.round(r.allInCost)));
+  box.appendChild(line('margin', '$' + Math.round(r.margin)));
+  box.appendChild(line('day at this pace', '$' + Math.round(r.dayFloorEquivalent)));
+  box.appendChild(line('leakage load', '$' + Math.round(r.leakageLoad) + (r.leakageBasis === 'derived' ? ' (from actuals)' : ' (8% default)')));
+  if (r.drivers.length) box.appendChild(el('div', 'drv', r.drivers.join(' · ')));
+  out.appendChild(box);
+});
+
+// ---------- Leads ----------
+async function renderLeads() {
+  const v = $('view-leads');
+  v.replaceChildren();
+  let data;
+  try {
+    data = await api('/api/leads?limit=50');
+  } catch (e) {
+    if (e.code === 401) return showKeywall();
+    v.appendChild(state('No leads yet', e.code === 503
+      ? 'Database not connected — leads appear here the moment it is.'
+      : 'Could not load leads. Pull refresh to retry.'));
+    return;
+  }
+  if (!data.leads.length) {
+    v.appendChild(state('Inbox zero', 'New calls and web leads land here.'));
+    return;
+  }
+  const rank = { hot: 0, warm: 1, cool: 2 };
+  const leads = [...data.leads].sort((a, b) =>
+    (b.isEmergency - a.isEmergency) || (b.needsCallback - a.needsCallback) ||
+    (rank[a.quality.priority] - rank[b.quality.priority]) ||
+    (new Date(b.createdAt) - new Date(a.createdAt)));
+  for (const lead of leads) {
+    const c = el('div', 'card' + (lead.isEmergency ? ' emergency' : '') + (lead.needsCallback ? ' callback' : ''));
+    if (lead.needsCallback) c.appendChild(el('div', 'cb-label', 'Call back needed'));
+    const top = el('div', 'toprow');
+    top.appendChild(el('div', 'who', lead.name || 'Unknown caller'));
+    top.appendChild(el('div', 'when', new Date(lead.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })));
+    c.appendChild(top);
+    if (lead.city) c.appendChild(el('div', 'addr', lead.city + (lead.zip ? ' · ' + lead.zip : '')));
+    if (lead.history) c.appendChild(el('div', 'scope', '' + lead.history));
+    if (lead.details) c.appendChild(el('div', 'scope', lead.details));
+    const b = el('div', 'badges');
+    if (lead.isEmergency) b.appendChild(badge('EMERGENCY', 'b-emg'));
+    const pb = permitBadge(lead);
+    if (pb) b.appendChild(pb);
+    if (lead.isFirstTimer === true) b.appendChild(badge('FIRST-TIMER', 'b-first'));
+    if (lead.isFirstTimer === false) b.appendChild(badge('REPEAT', 'b-repeat'));
+    b.appendChild(badge(lead.quality.priority.toUpperCase(), 'b-' + lead.quality.priority));
+    c.appendChild(b);
+    // §9 one-tap actions: call the human back, or file the lead. ARBOR never
+    // calls anyone itself — the phone app does, with Mike's thumb on it.
+    const row = el('div', 'actions');
+    if (lead.phone) {
+      const call = el('a', 'callbtn', 'Call back');
+      call.href = 'tel:' + lead.phone;
+      row.appendChild(call);
+    }
+    const mark = (label, cls, status) => {
+      const btn = el('button', 'minibtn ' + cls, label);
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        try {
+          await api('/api/leads/' + lead.id + '/status', { method: 'POST', body: { status } });
+          c.classList.add('dismissed');
+        } catch { btn.disabled = false; }
+      });
+      return btn;
+    };
+    row.appendChild(mark('✓', 'ok', 'qualified'));
+    row.appendChild(mark('✗', 'bad', 'spam'));
+    c.appendChild(row);
+    v.appendChild(c);
+  }
+}
+
+// ---------- Route planner (R16) — lives with the calendar (Mike, 2026-09-21) ----------
+function routePlannerPanel(v) {
+  v.appendChild(el('div', 'panel-title', 'Route planner'));
+  v.appendChild(el('div', 'storm-muted', 'One stop per line: address, city, ZIP. Twenty minutes on site each; Saturdays run Norfolk/Chesapeake/Portsmouth mornings and Virginia Beach after 12; weekdays start after 4.'));
+  const ta = document.createElement('textarea');
+  ta.id = 'route-stops';
+  ta.placeholder = '555 Synthetic Ave, Virginia Beach, 23451\n88 Sample St, Norfolk, 23503';
+  ta.style.cssText = 'width:100%;min-height:110px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:inherit;padding:10px;font-size:15px';
+  v.appendChild(ta);
+  const prow = el('div', 'loc-strip');
+  const daySel = document.createElement('select');
+  daySel.id = 'route-day';
+  daySel.style.cssText = 'min-height:48px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:inherit;padding:0 10px;font-size:15px';
+  for (const [val, label] of [['saturday', 'Saturday'], ['weekday', 'Weekday (after 4)']]) {
+    const o = document.createElement('option'); o.value = val; o.textContent = label; daySel.appendChild(o);
+  }
+  const pbtn = el('button', 'loc-toggle on', 'Plan route');
+  const pout = el('div');
+  pbtn.onclick = async () => {
+    pbtn.disabled = true;
+    pout.replaceChildren();
+    const cities = /virginia\s*beach|norfolk|chesapeake|portsmouth/i;
+    const stops = ta.value.split('\n').map((l) => l.trim()).filter(Boolean).map((line) => {
+      const zip = (line.match(/\b23\d{3}\b/) || [])[0];
+      const cm = line.match(cities);
+      return zip ? { label: line, zip: zip, city: cm ? cm[0] : undefined } : null;
+    });
+    if (stops.some((s) => !s)) {
+      pout.appendChild(el('div', 'storm', 'Every line needs a ZIP (23xxx). Nothing was planned.'));
+      pbtn.disabled = false;
+      return;
+    }
+    let plan;
+    try { plan = await api('/api/route/plan', { method: 'POST', body: { stops, day: daySel.value } }); }
+    catch (e) { pout.appendChild(el('div', 'storm', 'Could not plan the route \u2014 nothing was changed.')); pbtn.disabled = false; return; }
+    pout.appendChild(el('div', 'storm-muted', (plan.mode === 'live_traffic' ? 'Live traffic \u00b7 ' : '\u2139 ZIP estimates \u00b7 ') + plan.note));
+    for (const w of plan.warnings) pout.appendChild(el('div', 'storm', '\u26a0 ' + w));
+    for (const vt of plan.visits) {
+      const row = el('div', 'loc-strip');
+      row.appendChild(el('span', '', vt.order + '. ' + vt.startTime + '\u2013' + vt.endTime + ' \u2014 ' + vt.label));
+      pout.appendChild(row);
+    }
+    pbtn.disabled = false;
+  };
+  prow.appendChild(daySel); prow.appendChild(pbtn);
+  v.appendChild(prow);
+  v.appendChild(pout);
+}
+
+// ---------- Calendar: the ACTUAL Google Calendar, embedded ----------
+// Not a rebuild, not a mirror view — Mike's own Art-is-Tree calendar rendered
+// by Google inside the app. He edits it here exactly like he does anywhere
+// else; Arbo still never writes to it.
+const GCAL_ID = 'artistreeofvirginia@gmail.com';
+function gcalEmbedUrl() {
+  const p = new URLSearchParams({
+    src: GCAL_ID,
+    ctz: 'America/New_York',
+    mode: window.innerWidth >= 900 ? 'WEEK' : 'AGENDA',
+    bgcolor: '#0B0D10',
+    showTitle: '0',
+    showNav: '1',
+    showDate: '1',
+    showPrint: '0',
+    showTabs: '1',
+    showCalendars: '0',
+    showTz: '0',
+  });
+  return 'https://calendar.google.com/calendar/embed?' + p.toString();
+}
+function renderCalendar() {
+  const v = $('view-cal');
+  if (v.querySelector('#gcal-frame')) return; // don't reload on every refresh tick
+  v.replaceChildren();
+  const head = el('div', 'cal-src', '\u25CF Google Calendar \u2014 Art-is-Tree');
+  v.appendChild(head);
+  // The open-in-Google action lives ABOVE the frame: if the embed can't render
+  // (signed out of Google on this device), the way through is already on screen.
+  const openTop = el('a', 'cal-open', 'Open in Google Calendar \u2197');
+  openTop.href = 'https://calendar.google.com/calendar/u/0/r';
+  openTop.target = '_blank';
+  openTop.rel = 'noopener';
+  openTop.style.marginTop = '0';
+  openTop.style.marginBottom = '10px';
+  v.appendChild(openTop);
+  const frame = document.createElement('iframe');
+  frame.id = 'gcal-frame';
+  frame.src = gcalEmbedUrl();
+  frame.setAttribute('frameborder', '0');
+  frame.setAttribute('scrolling', 'no');
+  frame.title = 'Art-is-Tree Google Calendar';
+  v.appendChild(frame);
+  v.appendChild(el('div', 'cal-src',
+    'Blank above? You are signed out of Google on this device \u2014 use the button.'));
+  // R16 (Mike): the planner belongs with the calendar — plan the run, then
+  // put it on the real Google Calendar with the button above.
+  routePlannerPanel(v);
+}
+
+// ---------- The Book (§6/#36: every property, tap into its twin) ----------
+// ---------- Estimate prep (Mike 2026-09-24: know the property before the drive) ----------
+function estimatePrepPanel() {
+  const card = el('div', 'card');
+  card.appendChild(el('div', 'panel-title', 'Estimate prep'));
+  card.appendChild(el('div', 'storm-muted', 'Permit screen, drive estimate, Miss Utility and access notes — one sheet before you drive. Never a price, never a booking.'));
+  const f = (label, node) => {
+    const w = el('div', 'field');
+    const l = el('label', '', label); l.style.display = 'block'; l.style.fontSize = '11px'; l.style.fontWeight = '700';
+    l.style.letterSpacing = '.08em'; l.style.textTransform = 'uppercase'; l.style.color = 'var(--muted)'; l.style.marginBottom = '5px';
+    w.appendChild(l); w.appendChild(node); return w;
+  };
+  const addr = el('input'); addr.type = 'text'; addr.placeholder = '123 Oak St';
+  const citySel = el('select');
+  for (const c of ['Virginia Beach', 'Norfolk', 'Chesapeake', 'Portsmouth']) citySel.appendChild(new Option(c, c));
+  const zip = el('input'); zip.type = 'text'; zip.placeholder = '23452'; zip.inputMode = 'numeric';
+  const jobSel = el('select');
+  for (const [val, lab] of [['removal', 'Removal'], ['pruning', 'Pruning / trimming'], ['stump', 'Stump grinding'], ['land_clearing', 'Land clearing'], ['other', 'Other']]) {
+    jobSel.appendChild(new Option(lab, val));
+  }
+  const notes = el('textarea'); notes.placeholder = 'Access notes from the call — fenced backyard, tight gate, dogs…';
+  card.appendChild(f('Address', addr));
+  card.appendChild(f('City', citySel));
+  card.appendChild(f('ZIP', zip));
+  card.appendChild(f('Job type', jobSel));
+  card.appendChild(f('Access notes', notes));
+  const go = el('button', 'actbtn', 'Build prep sheet');
+  const out = el('div');
+  go.onclick = async () => {
+    if (!addr.value.trim()) { out.replaceChildren(el('div', 'storm-muted', 'Address is required.')); return; }
+    go.disabled = true; go.textContent = 'Screening…';
+    out.replaceChildren();
+    let s;
+    try {
+      s = await api('/api/estimate/prep', { method: 'POST', body: {
+        address: addr.value.trim(), city: citySel.value, zip: zip.value.trim() || undefined,
+        jobType: jobSel.value, accessNotes: notes.value.trim() || undefined,
+      } });
+    } catch (e) {
+      out.appendChild(el('div', 'storm-muted', 'Prep sheet unavailable right now — nothing was screened.'));
+      go.disabled = false; go.textContent = 'Build prep sheet';
+      return;
+    }
+    go.disabled = false; go.textContent = 'Build prep sheet';
+    const sheet = el('div', 'verdict ' + (s.permit.ran && s.permit.status === 'PERMIT_LIKELY' ? 'v-lose' : s.permit.ran && s.permit.status === 'REVIEW_NEEDED' ? 'v-below' : 'v-on'));
+    sheet.appendChild(el('div', 'vhead', s.permit.ran ? s.permit.status.replace(/_/g, ' ').replace('NO OVERLAY VERIFY', 'NO OVERLAY — VERIFY') : 'SCREEN NOT RUN'));
+    sheet.appendChild(el('div', 'drv', s.permit.ran ? s.permit.headline : s.permit.reason));
+    if (s.permit.ran) {
+      for (const o of s.permit.overlays) sheet.appendChild(el('div', 'drv', '⚠ ' + o.meaning));
+      if (s.permit.mitigation) sheet.appendChild(el('div', 'drv', '' + s.permit.mitigation));
+      if (s.permit.scaleEscalation) sheet.appendChild(el('div', 'drv', s.permit.scaleEscalation));
+      if (s.permit.powerLine) sheet.appendChild(el('div', 'drv', '' + s.permit.powerLine));
+    }
+    sheet.appendChild(el('div', 'drv', s.drive.fromZip
+      ? '~' + s.drive.minutes + ' min from ' + s.drive.fromZip + ' — ' + s.drive.note
+      : '' + s.drive.reason));
+    sheet.appendChild(el('div', 'drv', (s.missUtility.flagged ? '' : '') + s.missUtility.note));
+    sheet.appendChild(el('div', 'drv', '' + (s.access.notes ? '"' + s.access.notes + '" — ' + s.access.note : s.access.note)));
+    if (s.cityNote) sheet.appendChild(el('div', 'drv', s.cityNote));
+    out.replaceChildren(sheet);
+  };
+  card.appendChild(go);
+  card.appendChild(out);
+  return card;
+}
+
+async function renderBook() {
+  const v = $('view-book');
+  v.replaceChildren();
+  // Prep panel renders ABOVE the properties fetch on purpose — with the
+  // links cut that fetch 503s and returns early, and anything below it
+  // never renders in production (the talk-button lesson, again).
+  v.appendChild(estimatePrepPanel());
+  let data;
+  try {
+    data = await api('/api/properties');
+  } catch (e) {
+    if (e.code === 401) return showKeywall();
+    v.appendChild(state('The Book is empty', e.code === 503
+      ? 'Database not connected — properties appear the moment it is.'
+      : 'Could not load properties. Pull refresh to retry.'));
+    return;
+  }
+  if (data.comingDue && data.comingDue.length) {
+    v.appendChild(el('div', 'sect', 'Coming due — worth a look'));
+    for (const d of data.comingDue) {
+      const c = el('div', 'card');
+      const top = el('div', 'toprow');
+      top.appendChild(el('div', 'who', d.address));
+      c.appendChild(top);
+      if (d.city) c.appendChild(el('div', 'addr', d.city));
+      c.appendChild(el('div', 'due-note', d.note));
+      const b = el('div', 'badges');
+      b.appendChild(badge(d.state === 'overdue' ? 'OVERDUE' : 'DUE NOW', d.state === 'overdue' ? 'b-hot' : 'b-warm'));
+      c.appendChild(b);
+      c.addEventListener('click', () => openTwin(d.propertyId, d.address));
+      v.appendChild(c);
+    }
+  }
+  v.appendChild(el('div', 'sect', 'All properties'));
+  if (!data.properties.length) {
+    v.appendChild(state('No properties yet', 'Every address Arbo touches opens a living profile here.'));
+    return;
+  }
+  const count = (arr) => (arr && arr[0] ? arr[0].count : 0);
+  for (const p of data.properties) {
+    const c = el('div', 'card');
+    const top = el('div', 'toprow');
+    top.appendChild(el('div', 'who', p.address));
+    c.appendChild(top);
+    c.appendChild(el('div', 'addr', p.city + (p.zip ? ' · ' + p.zip : '')));
+    const b = el('div', 'badges');
+    b.appendChild(badge(count(p.jobs) + ' JOBS · ' + count(p.estimates) + ' EST · ' + count(p.trees) + ' TREES', 'b-src'));
+    if (p.due) b.appendChild(badge(p.due.state === 'overdue' ? 'OVERDUE' : 'COMING DUE', p.due.state === 'overdue' ? 'b-hot' : 'b-warm'));
+    if (p.hazard_power_lines) b.appendChild(badge('POWER LINES', 'b-flag'));
+    if (p.hazard_structures) b.appendChild(badge('STRUCTURES', 'b-flag'));
+    c.appendChild(b);
+    c.addEventListener('click', () => openTwin(p.id, p.address));
+    v.appendChild(c);
+  }
+}
+
+// The twin sheet: history, trees, permits, coming-due — "know this customer
+// instantly" (§9), one tap from anywhere.
+async function openTwin(id, title) {
+  $('twin-title').textContent = title || 'Property';
+  const body = $('twin-body');
+  body.replaceChildren();
+  $('twin').classList.add('show');
+  let t;
+  try {
+    t = await api('/api/properties/' + id);
+  } catch (e) {
+    body.appendChild(state('Could not load this property', 'Pull refresh and try again.'));
+    return;
+  }
+  const p = t.property;
+  const meta = el('div', 'addr', p.city + (p.zip ? ' · ' + p.zip : ''));
+  body.appendChild(meta);
+  if (p.hazard_power_lines || p.hazard_structures) {
+    const b = el('div', 'badges');
+    if (p.hazard_power_lines) b.appendChild(badge('POWER LINES', 'b-flag'));
+    if (p.hazard_structures) b.appendChild(badge('STRUCTURES', 'b-flag'));
+    body.appendChild(b);
+  }
+  if (t.permits.length) {
+    body.appendChild(el('div', 'sect', 'Permit screens (never a bare "clear")'));
+    for (const pr of t.permits) {
+      const c = el('div', 'card');
+      const b = el('div', 'badges');
+      if (pr.screen_status === 'PERMIT_LIKELY') b.appendChild(badge('PERMIT LIKELY', 'b-permit-likely'));
+      else if (pr.screen_status === 'REVIEW_NEEDED') b.appendChild(badge('REVIEW NEEDED', 'b-review'));
+      else b.appendChild(badge('NO OVERLAY — VERIFY W/ CITY', 'b-verify'));
+      if (pr.in_rpa) b.appendChild(badge('IN RPA', 'b-hot'));
+      b.appendChild(badge(pr.status.replace(/_/g, ' ').toUpperCase(), 'b-src'));
+      c.appendChild(b);
+      body.appendChild(c);
+    }
+  }
+  body.appendChild(el('div', 'sect', 'Trees on the lot'));
+  if (!t.trees.length) body.appendChild(state('No trees recorded yet', 'Trees land here as estimates and jobs record them.'));
+  for (const tr of t.trees) {
+    const c = el('div', 'card');
+    c.appendChild(el('div', 'who', (tr.species || 'Species unknown') + (tr.size ? ' · ' + tr.size : '')));
+    if (tr.location_on_lot) c.appendChild(el('div', 'addr', tr.location_on_lot));
+    if (tr.last_service_date) c.appendChild(el('div', 'scope', 'Last serviced ' + tr.last_service_date));
+    if (tr.next_due_forecast) c.appendChild(el('div', 'due-note', 'Typically ready for another look around ' + tr.next_due_forecast));
+    body.appendChild(c);
+  }
+  body.appendChild(el('div', 'sect', 'History'));
+  const tl = el('div', 'tl');
+  const items = [
+    ...t.jobs.map(j => ({ when: j.completed_at || j.scheduled_for, line: 'Job — ' + j.status + (j.materials ? ' · ' + j.materials : ''), who: j.contact && j.contact.name })),
+    ...t.estimates.map(es => ({ when: es.scheduled_slot, line: 'Estimate — ' + (es.outcome || 'pending'), who: es.contact && es.contact.name })),
+  ].sort((a, b) => String(b.when || '').localeCompare(String(a.when || '')));
+  if (!items.length) tl.appendChild(state('No visits yet', 'Jobs and estimates stack up here.'));
+  for (const it of items) {
+    const c = el('div', 'card');
+    c.appendChild(el('div', 'who', it.line));
+    c.appendChild(el('div', 'addr', (it.when ? new Date(it.when).toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' }) : 'unscheduled') + (it.who ? ' · ' + it.who : '')));
+    tl.appendChild(c);
+  }
+  body.appendChild(tl);
+  if (t.correspondence.length) {
+    body.appendChild(el('div', 'sect', 'City correspondence'));
+    for (const co of t.correspondence) {
+      const c = el('div', 'card');
+      c.appendChild(el('div', 'who', co.city + ' — ' + co.kind.replace(/_/g, ' ')));
+      if (co.case_ref) c.appendChild(el('div', 'addr', co.case_ref));
+      if (co.subject) c.appendChild(el('div', 'scope', co.subject));
+      body.appendChild(c);
+    }
+  }
+}
+$('twin-close').addEventListener('click', () => $('twin').classList.remove('show'));
+
+// ---------- Calls (§29 review loop: every conversation, your verdict) ----------
+async function renderCalls() {
+  const v = $('view-calls');
+  v.replaceChildren();
+  // R22 text outreach — the full list: who is ready, who was texted.
+  const outreachFull = el('div');
+  v.appendChild(outreachFull);
+  outreachPanel(true).then((b) => { if (b) outreachFull.appendChild(b); });
+  // Sona via Quo — every call, with transcripts.
+  const sonaCallsSlot = el('div');
+  v.appendChild(sonaCallsSlot);
+  sonaPanel(20, true).then((b) => { if (b) sonaCallsSlot.appendChild(b); });
+  // Texts + photos sent to the Arbo number (Mike, 2026-09-24). Receive only.
+  const txSlot = el('div');
+  v.appendChild(txSlot);
+  (async () => {
+    let t;
+    try { t = await api('/api/webhooks/texts'); }
+    catch (e) { if (e.code !== 401) txSlot.appendChild(el('div', 'storm-muted', 'Texts: status unavailable right now.')); return; }
+    txSlot.appendChild(el('div', 'panel-title', 'Texts'));
+    // Two lines, two honest states (§1B): the Arbo number needs the Twilio
+    // webhook; the business cell needs the iPhone Shortcut. Neither missing
+    // piece may read as "no texts".
+    if (!t.wired) {
+      txSlot.appendChild(el('div', 'storm-muted',
+        'Arbo line (757-821-6983): incoming-text wire NOT connected in Twilio yet — this is not zero texts.'));
+    }
+    if (!t.texts.some((m) => m.line === 'business')) {
+      txSlot.appendChild(el('div', 'storm-muted',
+        'Business cell: nothing relayed from your iPhone since deploy. If the Shortcut is set up, text yourself to test it.'));
+    }
+    if (!t.texts.length) return;
+    for (const m of t.texts.slice(0, 15)) {
+      const c = el('div', 'card');
+      const top = el('div', 'toprow');
+      top.appendChild(el('div', 'who', m.from || 'Unknown number'));
+      top.appendChild(el('div', 'when', fmtTime(m.at)));
+      c.appendChild(top);
+      const lb = el('div', 'badges');
+      lb.appendChild(badge(m.line === 'business' ? 'BUSINESS CELL' : m.line === 'quo' ? 'QUO LINE' : 'ARBO LINE', 'b-src'));
+      c.appendChild(lb);
+      if (m.body) c.appendChild(el('div', 'scope', m.body));
+      if (m.line === 'business') c.appendChild(el('div', 'storm-muted', 'Photos stay on your phone — iOS relays words only.'));
+      if (m.media && m.media.length) {
+        const row = el('div', 'actions');
+        m.media.forEach((p, i) => {
+          const a = el('a', 'minibtn', (p.contentType && p.contentType.indexOf('image/') === 0 ? 'Photo ' : 'Attachment ') + (i + 1) + ' ↗');
+          a.href = p.url; a.target = '_blank'; a.rel = 'noopener';
+          a.style.display = 'inline-flex'; a.style.alignItems = 'center'; a.style.textDecoration = 'none';
+          row.appendChild(a);
+        });
+        c.appendChild(row);
+      }
+      if (m.from) {
+        const actions = el('div', 'actions');
+        const call = el('a', 'callbtn', 'Call back');
+        call.href = 'tel:' + m.from;
+        actions.appendChild(call);
+        c.appendChild(actions);
+      }
+      txSlot.appendChild(c);
+    }
+  })();
+  // Notes from calls Mike ANSWERED — iPhone records + transcribes, the
+  // Share-sheet Shortcut relays them here. Arbo cannot hear his cell.
+  const cnSlot = el('div');
+  v.appendChild(cnSlot);
+  (async () => {
+    let n;
+    try { n = await api('/api/relay/call-notes'); } catch (e) { return; }
+    if (!n.notes.length) return;
+    cnSlot.appendChild(el('div', 'panel-title', 'Notes from calls you answered'));
+    for (const note of n.notes.slice(0, 8)) {
+      const c = el('div', 'card');
+      const top = el('div', 'toprow');
+      top.appendChild(el('div', 'who', note.withWhom || 'Call'));
+      top.appendChild(el('div', 'when', fmtTime(note.at)));
+      c.appendChild(top);
+      c.appendChild(el('div', 'scope', note.text.length > 600 ? note.text.slice(0, 600) + '…' : note.text));
+      cnSlot.appendChild(c);
+    }
+  })();
+  // R19: post-call transcripts pushed by ElevenLabs, when that wire is up.
+  const trSlot = el('div');
+  v.appendChild(trSlot);
+  (async () => {
+    let t;
+    try { t = await api('/api/webhooks/calls'); } catch (e) { return; }
+    if (!t.wired) {
+      trSlot.appendChild(el('div', 'storm-muted',
+        'Call-transcript wire NOT connected — this is not zero calls. The in-call records still capture every call.'));
+      return;
+    }
+    if (!t.transcripts.length) return;
+    trSlot.appendChild(el('div', 'panel-title', 'Call transcripts (pushed after each call)'));
+    for (const tr of t.transcripts.slice(0, 8)) {
+      const c = el('div', 'card');
+      const top = el('div', 'toprow');
+      top.appendChild(el('div', 'who', (tr.collected && tr.collected.caller_name) ? String(tr.collected.caller_name) : 'Caller'));
+      top.appendChild(el('div', 'when', fmtTime(tr.at) + ' · ' + tr.turns + ' turns'));
+      c.appendChild(top);
+      if (tr.summary) c.appendChild(el('div', 'scope', tr.summary));
+      const bits = [];
+      if (tr.collected) {
+        if (tr.collected.job_type) bits.push(String(tr.collected.job_type));
+        if (tr.collected.city) bits.push(String(tr.collected.city));
+        if (tr.collected.is_emergency === true) bits.push('EMERGENCY');
+      }
+      if (bits.length) c.appendChild(el('div', 'addr', bits.join(' · ')));
+      trSlot.appendChild(c);
+    }
+  })();
+  let data;
+  try {
+    data = await api('/api/review/backlog?all=1&limit=20');
+  } catch (e) {
+    if (e.code === 401) return showKeywall();
+    v.appendChild(state('No calls logged yet', e.code === 503
+      ? 'Database not connected — calls log here the moment it is.'
+      : 'Could not load the call log. Pull refresh to retry.'));
+    return;
+  }
+  if (!data.conversations.length) {
+    v.appendChild(state('No calls yet', 'Every receptionist conversation lands here for your review.'));
+    return;
+  }
+  for (const conv of data.conversations) {
+    const flags = [...new Set((conv.turns || []).flatMap(t => t.flags || []))];
+    const c = el('div', 'card' + (flags.includes('emergency') ? ' emergency' : ''));
+    const top = el('div', 'toprow');
+    top.appendChild(el('div', 'who', new Date(conv.started_at).toLocaleString([], { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })));
+    top.appendChild(el('div', 'when', (conv.turns || []).length + ' turns'));
+    c.appendChild(top);
+    const b = el('div', 'badges');
+    if (flags.includes('emergency')) b.appendChild(badge('EMERGENCY', 'b-emg'));
+    if (flags.some(f => f.startsWith('guard_blocked'))) b.appendChild(badge('GUARD BLOCKED A REPLY', 'b-review'));
+    b.appendChild(badge(conv.channel.toUpperCase(), 'b-src'));
+    if (conv.reviewed) b.appendChild(badge('REVIEWED', 'b-cool'));
+    c.appendChild(b);
+    for (const turn of (conv.turns || []).slice(0, 6)) {
+      c.appendChild(el('div', 'scope', '' + turn.caller));
+      c.appendChild(el('div', 'addr', '' + turn.reply));
+    }
+    if (!conv.reviewed) {
+      const btn = el('button', 'actbtn', 'Mark reviewed ✓');
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        try {
+          await api('/api/review/' + conv.id + '/reviewed', { method: 'POST', body: {} });
+          btn.textContent = 'Reviewed';
+          btn.className = 'actbtn done';
+        } catch { btn.disabled = false; }
+      });
+      c.appendChild(btn);
+    }
+    v.appendChild(c);
+  }
+}
+
+// ---------- Safety (§6V/§4: credentials and near misses) ----------
+const CERT_STATE = {
+  lapsed: ['EXPIRED', 'b-emg'],
+  missing: ['NO RECORD', 'b-emg'],
+  unknown: ['NO EXPIRY DATE', 'b-flag'],
+  urgent: ['EXPIRES SOON', 'b-warm'],
+  upcoming: ['RENEWAL DUE', 'b-src'],
+};
+async function renderSafety(slot) {
+  slot.replaceChildren();
+  let s;
+  try {
+    s = await api('/api/safety');
+  } catch (e) {
+    if (e.code === 401) return;
+    slot.appendChild(el('div', 'panel-title', 'Safety'));
+    slot.appendChild(state('Safety board unavailable', e.code === 503
+      ? 'Database not connected — Arbo cannot check credentials or near misses.'
+      : 'Could not read the safety board. This is not a claim that everyone is current.'));
+    return;
+  }
+
+  // Blind spots FIRST. A safety board with a hole in it must say so before it
+  // shows anything reassuring (§1B).
+  for (const b of s.blindSpots) {
+    const c = el('div', 'card loop-card urgent');
+    c.appendChild(el('div', 'loop-kind', '⚠ CANNOT SEE'));
+    c.appendChild(el('div', 'scope', b));
+    slot.appendChild(c);
+  }
+
+  if (s.aerialBlocked.length) {
+    const c = el('div', 'card emergency');
+    c.appendChild(el('div', 'who', s.aerialBlocked.length + ' crew member(s) cannot be put on aerial work'));
+    c.appendChild(el('div', 'scope',
+      'A rescue-critical credential is expired, missing, or has no date on file. Fix before assigning the day.'));
+    slot.appendChild(c);
+  }
+
+  if (s.certProblems.length) {
+    slot.appendChild(el('div', 'panel-title', 'Credentials — ' + s.certProblems.length + ' need attention'));
+    for (const f of s.certProblems) {
+      const hard = f.state === 'lapsed' || f.state === 'missing';
+      const c = el('div', 'card' + (hard ? ' emergency' : ''));
+      const top = el('div', 'toprow');
+      top.appendChild(el('div', 'who', f.crewMemberName));
+      top.appendChild(el('div', 'when', f.daysUntil === null ? '—' : f.daysUntil + 'd'));
+      c.appendChild(top);
+      c.appendChild(el('div', 'scope', f.line));
+      const b = el('div', 'badges');
+      const [label, cls] = CERT_STATE[f.state] || [String(f.state).toUpperCase(), 'b-src'];
+      b.appendChild(badge(label, cls));
+      if (f.blocksAerialWork) b.appendChild(badge('NO AERIAL WORK', 'b-emg'));
+      c.appendChild(b);
+      slot.appendChild(c);
+    }
+  }
+
+  const openNm = (s.nearMisses || []).filter((n) => !n.hasTrainingItem);
+  if (openNm.length) {
+    slot.appendChild(el('div', 'panel-title', 'Near misses — ' + openNm.length + ' with no lesson yet'));
+    for (const n of openNm.slice(0, 8)) {
+      const c = el('div', 'card');
+      const top = el('div', 'toprow');
+      top.appendChild(el('div', 'who', (n.hazardCategory || 'uncategorised').replace(/_/g, ' ')));
+      top.appendChild(el('div', 'when', n.occurredOn));
+      c.appendChild(top);
+      c.appendChild(el('div', 'scope', n.description));
+      slot.appendChild(c);
+    }
+  }
+
+  // Clean board must look different from a board that never ran.
+  if (!s.blindSpots.length && !s.certProblems.length && !openNm.length) {
+    slot.appendChild(el('div', 'panel-title', 'Safety'));
+    slot.appendChild(state('No expiry problems found',
+      'Arbo checked every active crew member against the certs on file and found nothing expiring. '
+      + 'That is not a clearance — it means no problem was found in the records Arbo can see.'));
+  }
+}
+
+// ---------- Roster (§4): the people, and the cards Arbo can see ----------
+// The safety board reads certifications; this is where a person and a card get
+// on file at all. Nothing here passes judgement on anybody — it reports how
+// many cards are RECORDED, which is a different fact, and findCertProblems on
+// the board above owns the only verdict in the app.
+const CERT_TYPES = [
+  ['first_aid', 'First aid'], ['cpr', 'CPR'], ['aerial_rescue', 'Aerial rescue'],
+  ['tree_rescue', 'Tree rescue'], ['cdl', 'CDL'], ['other', 'Other'],
+];
+const CREW_ROLES = ['climber', 'foreman', 'groundie', 'driver'];
+
+function renderRoster(slot) {
+  slot.replaceChildren();
+  slot.appendChild(el('div', 'panel-title', 'Crew roster'));
+  const listSlot = el('div');
+  slot.appendChild(listSlot);
+  slot.appendChild(rosterComposer(listSlot));
+  renderRosterList(listSlot);
+}
+
+async function renderRosterList(slot) {
+  slot.replaceChildren();
+  let r;
+  try {
+    r = await api('/api/roster');
+  } catch (e) {
+    if (e.code === 401) return;
+    slot.appendChild(state('Roster unavailable', e.code === 503
+      ? 'Database not connected — Arbo cannot tell you who is on the crew.'
+      : 'Could not read the roster. This is not a claim that nobody is on it.'));
+    return;
+  }
+  if (!r.certsKnown) {
+    // §1B: unread cards are UNKNOWN, and a zero would read as "he has none".
+    const w = el('div', 'card loop-card urgent');
+    w.appendChild(el('div', 'loop-kind', '⚠ CANNOT SEE'));
+    w.appendChild(el('div', 'scope',
+      'Arbo could not read the certification rows. Card counts below are unknown — not zero.'));
+    slot.appendChild(w);
+  }
+  if (!r.people.length) {
+    slot.appendChild(state('Nobody on the roster yet',
+      'Add your crew below. Until somebody is on here the safety board has nothing to check and no one can sign into the crew door.'));
+    return;
+  }
+  for (const p of r.people) {
+    const c = el('div', 'card' + (p.active ? '' : ' loop-card'));
+    const top = el('div', 'toprow');
+    top.appendChild(el('div', 'who', p.name));
+    top.appendChild(el('div', 'when', 'lvl ' + p.competencyLevel));
+    c.appendChild(top);
+    const b = el('div', 'badges');
+    b.appendChild(badge(p.role.toUpperCase(), CREW_ROLES.indexOf(p.role) === -1 ? 'b-verify' : 'b-src'));
+    if (!p.active) b.appendChild(badge('OFF ROSTER', 'b-src'));
+    // A count of cards on file — never a statement about what they can do.
+    b.appendChild(badge(p.certCount === null ? 'CARDS UNKNOWN' : p.certCount + ' CARDS ON FILE',
+      p.certCount === null ? 'b-verify' : 'b-src'));
+    c.appendChild(b);
+    if (CREW_ROLES.indexOf(p.role) === -1) {
+      const w = el('div', 'scope');
+      w.style.color = 'var(--warning)';
+      w.textContent = '⚠ Arbo does not know this role, so it applies the strictest card requirements to them.';
+      c.appendChild(w);
+    }
+    c.appendChild(el('div', 'scope', 'Crew code: ' + p.id));
+    c.appendChild(certAdder(p, slot));
+    if (p.active) {
+      const off = el('button', 'actbtn', 'Take off the roster');
+      const err = el('div', 'errline', '');
+      off.addEventListener('click', async () => {
+        off.disabled = true;
+        try {
+          await api('/api/roster/' + p.id + '/deactivate', { method: 'POST', body: {} });
+          renderRosterList(slot);
+        } catch {
+          off.disabled = false;
+          err.textContent = 'Could not do that. Nothing was changed.';
+        }
+      });
+      c.appendChild(off);
+      c.appendChild(err);
+    }
+    slot.appendChild(c);
+  }
+}
+
+function certAdder(person, listSlot) {
+  const wrap = el('div', 'field');
+  const type = document.createElement('select');
+  for (const [v, label] of CERT_TYPES) {
+    const o = document.createElement('option');
+    o.value = v;
+    o.textContent = label;
+    type.appendChild(o);
+  }
+  const exp = document.createElement('input');
+  exp.type = 'date';
+  const btn = el('button', 'actbtn', 'Record / renew a card');
+  const out = el('div', 'errline', '');
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    out.style.color = '';
+    try {
+      const res = await api('/api/roster/' + person.id + '/certification', {
+        method: 'POST', body: { type: type.value, expiresOn: exp.value },
+      });
+      // A card with no date must not read as a win — the line says UNKNOWN.
+      out.style.color = res.expiryKnown ? 'var(--ok)' : 'var(--warning)';
+      out.textContent = res.line;
+      exp.value = '';
+      btn.disabled = false;
+      renderRosterList(listSlot);
+    } catch (e) {
+      btn.disabled = false;
+      out.textContent = e.message === 'bad_expiry_date'
+        ? 'Expiry has to be a real date.'
+        : 'Could not record that. Nothing was written.';
+    }
+  });
+  wrap.appendChild(type);
+  wrap.appendChild(exp);
+  wrap.appendChild(btn);
+  wrap.appendChild(out);
+  return wrap;
+}
+
+function rosterComposer(listSlot) {
+  const c = el('div', 'card');
+  c.appendChild(el('div', 'loop-kind', 'Add somebody to the roster'));
+  const row = el('div', 'field');
+  const name = document.createElement('input');
+  name.type = 'text';
+  name.placeholder = 'Name';
+  const role = document.createElement('select');
+  for (const r of CREW_ROLES) {
+    const o = document.createElement('option');
+    o.value = r;
+    o.textContent = r;
+    role.appendChild(o);
+  }
+  const level = document.createElement('input');
+  level.type = 'text';
+  level.placeholder = 'Skill level 1–10';
+  row.appendChild(name);
+  row.appendChild(role);
+  row.appendChild(level);
+  c.appendChild(row);
+  const btn = el('button', 'actbtn', 'Add to roster');
+  const out = el('div', 'errline', '');
+  btn.addEventListener('click', async () => {
+    if (!name.value.trim()) { out.textContent = 'Needs a name.'; return; }
+    btn.disabled = true;
+    try {
+      const res = await api('/api/roster', {
+        method: 'POST',
+        body: { name: name.value.trim(), role: role.value, competencyLevel: Number(level.value) || 1 },
+      });
+      out.style.color = res.roleRecognised ? 'var(--ok)' : 'var(--warning)';
+      out.textContent = res.line;
+      name.value = '';
+      level.value = '';
+      btn.disabled = false;
+      renderRosterList(listSlot);
+    } catch {
+      btn.disabled = false;
+      out.style.color = '';
+      out.textContent = 'Could not add them. Nothing was written.';
+    }
+  });
+  c.appendChild(btn);
+  c.appendChild(out);
+  return c;
+}
+
+// ---------- Training board (§6M.5: weak, untested, strong are three states) ----------
+async function renderTrainingBoard(slot) {
+  slot.replaceChildren();
+  let b;
+  try {
+    b = await api('/api/training/board');
+  } catch (e) {
+    if (e.code === 401) return;
+    slot.appendChild(el('div', 'panel-title', 'Crew training'));
+    slot.appendChild(state('Training board unavailable', e.code === 503
+      ? 'Database not connected — Arbo cannot show who is weak on what.'
+      : 'Could not read the training board. This is not a claim that everyone is current.'));
+    return;
+  }
+  if (!b.rows.length && !b.blindSpots.length) return;
+
+  slot.appendChild(el('div', 'panel-title',
+    b.owingThisWeek.length
+      ? 'Crew training — ' + b.owingThisWeek.length + ' owe this week'
+      : 'Crew training'));
+
+  // Blind spots FIRST: what the board cannot see outranks what it can (§1B).
+  for (const spot of b.blindSpots) {
+    const w = el('div', 'card loop-card urgent');
+    w.appendChild(el('div', 'loop-kind', '⚠ CANNOT SEE'));
+    w.appendChild(el('div', 'scope', spot));
+    slot.appendChild(w);
+  }
+
+  for (const r of b.rows) {
+    const c = el('div', 'card' + (r.neverTested ? ' emergency' : ''));
+    const top = el('div', 'toprow');
+    top.appendChild(el('div', 'who', r.name));
+    top.appendChild(el('div', 'when', r.role));
+    c.appendChild(top);
+
+    const badges = el('div', 'badges');
+    if (r.neverTested) badges.appendChild(badge('NEVER TESTED', 'b-emg'));
+    if (r.completedThisWeek === null) badges.appendChild(badge('WEEK UNKNOWN', 'b-flag'));
+    else if (r.completedThisWeek) badges.appendChild(badge('WEEK DONE', 'b-cool'));
+    else badges.appendChild(badge('OWES THIS WEEK', 'b-warm'));
+    c.appendChild(badges);
+
+    if (r.weakTopics.length) {
+      c.appendChild(el('div', 'scope', 'Weak: ' + r.weakTopics
+        .map((w) => w.topic + ' (' + Math.round(w.score * 100) + '%)').join(' · ')));
+    }
+    if (r.untestedTopics.length) {
+      // Deliberately NOT phrased as a pass. Never asked is our gap, not his.
+      const u = el('div', 'scope');
+      u.style.color = 'var(--warning)';
+      u.textContent = 'Never asked about: ' + r.untestedTopics.join(' · ');
+      c.appendChild(u);
+    }
+    if (r.strongTopics.length) {
+      c.appendChild(el('div', 'scope', 'Strong: ' + r.strongTopics.join(' · ')));
+    }
+    slot.appendChild(c);
+  }
+}
+
+// ---------- Performance (§6D/§6N.3: which areas actually pay) ----------
+const VERDICT_LABEL = {
+  above: ['ABOVE FLEET RATE', 'b-cool'],
+  at: ['AT FLEET RATE', 'b-src'],
+  below: ['BELOW FLEET RATE', 'b-warm'],
+  not_enough_data: ['NOT ENOUGH DATA', 'b-pending'],
+};
+function mixLine(mix) {
+  return Object.keys(mix || {}).map((k) => mix[k] + ' ' + k).join(' \u00b7 ');
+}
+async function renderPerformance() {
+  const v = $('view-perf');
+  v.replaceChildren();
+  let p;
+  try {
+    p = await api('/api/performance');
+  } catch (e) {
+    if (e.code === 401) return showKeywall();
+    v.appendChild(state('Performance unavailable', e.code === 503
+      ? 'Database not connected — Arbo cannot rate any area.'
+      : 'Could not read the numbers. This is not a claim that everything is fine.'));
+    return;
+  }
+
+  // The benchmark first: every verdict below is measured against it, so it
+  // must never be read without it.
+  const hud = el('div', 'hud');
+  const tile = (n, label, cls) => {
+    const t = el('div', 'tile' + (cls ? ' ' + cls : ''));
+    t.appendChild(el('b', '', String(n)));
+    t.appendChild(el('span', '', label));
+    return t;
+  };
+  hud.appendChild(tile(p.fleetRatePerCrewHour === null ? '\u2013' : '$' + p.fleetRatePerCrewHour,
+    'fleet $/crew-hr', 'accent wide'));
+  hud.appendChild(tile(p.areas.filter((a) => a.verdict !== 'not_enough_data').length, 'areas rated'));
+  hud.appendChild(tile(p.withheld.length, 'unrated', p.withheld.length ? 'warn' : ''));
+  v.appendChild(hud);
+
+  // §1B: what the numbers cannot see comes BEFORE the numbers.
+  for (const b of p.blindSpots) {
+    const w = el('div', 'card loop-card urgent');
+    w.appendChild(el('div', 'loop-kind', '\u26a0 BLIND SPOT'));
+    w.appendChild(el('div', 'scope', b));
+    v.appendChild(w);
+  }
+
+  const judged = p.areas.filter((a) => a.verdict !== 'not_enough_data');
+  const unjudged = p.areas.filter((a) => a.verdict === 'not_enough_data');
+
+  if (judged.length) {
+    v.appendChild(el('div', 'panel-title', 'Rated on revenue per crew-hour \u2014 not per job'));
+    for (const a of judged) v.appendChild(areaCard(a));
+  }
+
+  // Unrated areas are shown SEPARATELY, never as the bottom of a ranking.
+  if (unjudged.length) {
+    v.appendChild(el('div', 'panel-title', 'Not enough work yet to rate \u2014 ' + unjudged.length));
+    v.appendChild(el('div', 'zip-run', 'These are unmeasured, not underperforming. Do not read them as either.'));
+    for (const a of unjudged) v.appendChild(areaCard(a));
+  }
+
+  if (!p.areas.length) {
+    v.appendChild(state('No completed work to rate yet',
+      'Areas appear here once jobs are completed with hours and crew size recorded.'));
+  }
+
+  v.appendChild(el('div', 'panel-title', 'Campaigns'));
+  // Its own slot, for the same reason the fleet list has one: the composer
+  // below refreshes the LIST after a save, and re-rendering the whole view
+  // would delete the composer along with the answer it just printed.
+  const campSlot = el('div');
+  v.appendChild(campSlot);
+  renderCampaignList(campSlot, p);
+  // Only when the read worked. Offering the form over an unreadable feed would
+  // imply Arbo is talking to the database when it is not, and nothing typed
+  // into it could be saved.
+  if (p.campaignsKnown) v.appendChild(campaignComposer(campSlot));
+}
+
+function renderCampaignList(slot, p) {
+  slot.replaceChildren();
+  if (!p.campaignsKnown) {
+    slot.appendChild(state('Campaign data unavailable', 'Arbo could not read the campaigns. This is not "no campaigns running".'));
+    return;
+  }
+  if (!p.campaigns.length) {
+    slot.appendChild(state('No campaigns on file', 'Add one below and its cost per booked job shows up here.'));
+    return;
+  }
+  for (const c of p.campaigns) {
+    const card = el('div', 'card');
+    const top = el('div', 'toprow');
+    top.appendChild(el('div', 'who', c.type.replace(/_/g, ' ')));
+    top.appendChild(el('div', 'when', c.costPerBookedJob === null ? '\u2013' : '$' + c.costPerBookedJob + '/job'));
+    card.appendChild(top);
+    card.appendChild(el('div', 'scope', c.line));
+    slot.appendChild(card);
+  }
+}
+
+/** Re-read just the campaigns and redraw that list, leaving the composer be. */
+async function refreshCampaignList(slot) {
+  try {
+    renderCampaignList(slot, await api('/api/performance'));
+  } catch {
+    // The save already succeeded and said so. A failed re-read must not
+    // overwrite that with something that looks like the save failed.
+  }
+}
+
+// §6D: register what was spent so the Numbers screen can say whether it paid.
+// Arbo still originates no figure (§3) — Mike types what he spent, and Arbo
+// divides it by what came back.
+const CAMPAIGN_TYPES = [
+  ['flyer', 'Flyer drop'], ['ads', 'Ads'], ['seasonal', 'Seasonal push'],
+  ['neighbor_around_job', 'Neighbors around a job'],
+];
+function campaignComposer(listSlot) {
+  const c = el('div', 'card');
+  c.appendChild(el('div', 'loop-kind', 'Register a campaign'));
+  c.appendChild(el('div', 'scope',
+    'Without a tracking number Arbo cannot tell whether it worked — and it will say UNKNOWN rather than report it as zero.'));
+  const row = el('div', 'field');
+  const type = document.createElement('select');
+  for (const [v2, label] of CAMPAIGN_TYPES) {
+    const o = document.createElement('option');
+    o.value = v2;
+    o.textContent = label;
+    type.appendChild(o);
+  }
+  row.appendChild(type);
+  const mk = (ph) => { const n = document.createElement('input'); n.type = 'text'; n.placeholder = ph; row.appendChild(n); return n; };
+  const cost = mk('What it cost');
+  const track = mk('Tracking number (optional)');
+  const sent = document.createElement('input');
+  sent.type = 'date';
+  row.appendChild(sent);
+  c.appendChild(row);
+  const btn = el('button', 'actbtn', 'Register it');
+  const out = el('div', 'errline', '');
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    try {
+      const res = await api('/api/campaigns', {
+        method: 'POST',
+        body: {
+          type: type.value, cost: cost.value.trim(),
+          trackingNumber: track.value.trim(), sentAtIso: sent.value,
+        },
+      });
+      // Untracked is a warning, not a win — it decides what the screen can say.
+      out.style.color = res.attributionWired && res.costKnown ? 'var(--ok)' : 'var(--warning)';
+      out.textContent = res.line;
+      cost.value = '';
+      track.value = '';
+      btn.disabled = false;
+      // Show it in the list straight away, or it reads as though nothing saved.
+      refreshCampaignList(listSlot);
+    } catch (e) {
+      btn.disabled = false;
+      out.style.color = '';
+      out.textContent = e.message === 'bad_cost'
+        ? 'The cost has to be a number.'
+        : e.message === 'bad_sent_date'
+          ? 'That sent date is not a real date.'
+          : 'Could not register it. Nothing was written.';
+    }
+  });
+  c.appendChild(btn);
+  c.appendChild(out);
+  return c;
+}
+
+function areaCard(a) {
+  const c = el('div', 'card' + (a.verdict === 'below' ? ' emergency' : ''));
+  const top = el('div', 'toprow');
+  top.appendChild(el('div', 'who', a.areaKey));
+  top.appendChild(el('div', 'when',
+    a.normalizedRatePerCrewHour === null ? '\u2013' : '$' + a.normalizedRatePerCrewHour + '/crew-hr'));
+  c.appendChild(top);
+  c.appendChild(el('div', 'scope', a.line));
+  const b = el('div', 'badges');
+  const [label, cls] = VERDICT_LABEL[a.verdict] || [a.verdict, 'b-src'];
+  b.appendChild(badge(label, cls));
+  // The job mix always rides with the verdict, so it cannot be read without
+  // the context that produced it.
+  const mix = mixLine(a.mix);
+  if (mix) b.appendChild(badge(mix, 'b-src'));
+  c.appendChild(b);
+  return c;
+}
+
+// ---------- Vetting queue (§4.7: a human publishes, never Arbo) ----------
+async function renderVetting(slot) {
+  slot.replaceChildren();
+  let d;
+  try {
+    d = await api('/api/training/drafts');
+  } catch (e) {
+    if (e.code === 401) return;
+    slot.appendChild(el('div', 'panel-title', 'Safety lessons'));
+    slot.appendChild(state('Draft queue unavailable', e.code === 503
+      ? 'Database not connected — Arbo cannot show what is waiting to be vetted.'
+      : 'Could not read the draft queue. This is not a claim that nothing is waiting.'));
+    return;
+  }
+  if (!d.count) return;
+  slot.appendChild(el('div', 'panel-title', 'Safety lessons awaiting YOUR sign-off — ' + d.count));
+  for (const draft of d.drafts) {
+    const c = el('div', 'card loop-card');
+    c.appendChild(el('div', 'loop-kind', draft.topic));
+    const b = draft.body || {};
+    if (b.headline) c.appendChild(el('div', 'scope', b.headline));
+    if (b.whatHappened) c.appendChild(el('div', 'scope', b.whatHappened));
+    for (const step of (b.whatToDoDifferently || [])) c.appendChild(el('div', 'scope', '• ' + step));
+    for (const note of (b.vetterNotes || [])) {
+      const w = el('div', 'scope');
+      w.style.color = 'var(--warning)';
+      w.textContent = '⚠ ' + note;
+      c.appendChild(w);
+    }
+    const row = el('div', 'field');
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Your name — required to publish';
+    row.appendChild(input);
+    c.appendChild(row);
+    const btn = el('button', 'actbtn', 'Vet & publish');
+    const err = el('div', 'errline', '');
+    btn.addEventListener('click', async () => {
+      const vettedBy = input.value.trim();
+      if (!vettedBy) {
+        // §4.7 in the UI, so the DB CHECK is never the thing that says no.
+        err.textContent = 'Life-safety content cannot publish without your name on it.';
+        return;
+      }
+      btn.disabled = true;
+      try {
+        await api('/api/training/drafts/' + draft.id + '/publish', { method: 'POST', body: { vettedBy } });
+        btn.textContent = 'Published ✓';
+        btn.className = 'actbtn done';
+        renderVetting(slot);
+      } catch (ex) {
+        btn.disabled = false;
+        err.textContent = ex.code === 409
+          ? 'Already published — nothing to do.'
+          : 'Could not publish that. Nothing was changed.';
+      }
+    });
+    c.appendChild(btn);
+    c.appendChild(err);
+    slot.appendChild(c);
+  }
+}
+
+// ---------- Reference library (§6U): write it here, sign it off here ----------
+// The crew door READS this library. Nothing reaches a crew phone from here
+// without a name attached (§4.7), and Arbo never writes an entry itself.
+function renderLibraryDesk(slot) {
+  slot.replaceChildren();
+  slot.appendChild(el('div', 'panel-title', 'Reference library'));
+  // Queue and composer are separate slots on purpose: refreshing the queue
+  // after a save must not wipe the confirmation the composer just printed.
+  const queueSlot = el('div');
+  slot.appendChild(queueSlot);
+  slot.appendChild(libraryComposer(queueSlot));
+  renderLibraryQueue(queueSlot);
+}
+
+async function renderLibraryQueue(slot) {
+  slot.replaceChildren();
+  let d;
+  try {
+    d = await api('/api/reference/drafts');
+  } catch (e) {
+    if (e.code === 401) return;
+    // §1B: a queue Arbo could not read is not an empty queue.
+    slot.appendChild(state('Library queue unavailable', e.code === 503
+      ? 'Database not connected — Arbo cannot show what is waiting to be vetted.'
+      : 'Could not read the library drafts. This is not a claim that nothing is waiting.'));
+    return;
+  }
+
+  for (const draft of (d.drafts || [])) {
+    const c = el('div', 'card loop-card');
+    c.appendChild(el('div', 'loop-kind', draft.techniqueName));
+    c.appendChild(el('div', 'scope', draft.howTo));
+    if (draft.wontWorkWhen) c.appendChild(el('div', 'scope', 'Limits: ' + draft.wontWorkWhen));
+    if ((draft.standardRefs || []).length) {
+      c.appendChild(el('div', 'scope', 'Per ' + draft.standardRefs.join(' · ')));
+    }
+    // The holes come BEFORE the publish button, every time. A vetter should
+    // have to look at what is missing before their name goes on it.
+    for (const gap of (draft.gaps || [])) {
+      const w = el('div', 'scope');
+      w.style.color = 'var(--warning)';
+      w.textContent = '⚠ ' + gap;
+      c.appendChild(w);
+    }
+    const row = el('div', 'field');
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.placeholder = 'Your name — required to publish';
+    row.appendChild(input);
+    c.appendChild(row);
+    const btn = el('button', 'actbtn', 'Vet & publish');
+    const err = el('div', 'errline', '');
+    btn.addEventListener('click', async () => {
+      const vettedBy = input.value.trim();
+      if (!vettedBy) {
+        err.textContent = 'Life-safety content cannot publish without your name on it.';
+        return;
+      }
+      btn.disabled = true;
+      try {
+        await api('/api/reference/' + draft.id + '/publish', { method: 'POST', body: { vettedBy } });
+        renderLibraryQueue(slot);
+      } catch (ex) {
+        btn.disabled = false;
+        err.textContent = ex.code === 409
+          ? 'Already published — nothing to do.'
+          : 'Could not publish that. Nothing was changed.';
+      }
+    });
+    c.appendChild(btn);
+    c.appendChild(err);
+    slot.appendChild(c);
+  }
+}
+
+function libraryComposer(queueSlot) {
+  const c = el('div', 'card');
+  c.appendChild(el('div', 'loop-kind', 'Write a new entry'));
+  c.appendChild(el('div', 'scope',
+    'Cite the clause — never paste the standard text (§6U.3). Anything that is not a clause reference is dropped.'));
+
+  const fields = {};
+  const add = (key, placeholder, multiline) => {
+    const row = el('div', 'field');
+    const n = document.createElement(multiline ? 'textarea' : 'input');
+    if (!multiline) n.type = 'text';
+    n.placeholder = placeholder;
+    row.appendChild(n);
+    c.appendChild(row);
+    fields[key] = n;
+  };
+  add('techniqueName', 'Technique name');
+  add('howTo', 'How to do it', true);
+  add('wontWorkWhen', 'When this does NOT work — the limits', true);
+  add('pros', 'Good for (one per line)', true);
+  add('cons', 'Downsides (one per line)', true);
+  add('standardRefs', 'Clause citations, comma separated — e.g. Z133 §8.1');
+  add('skillLevel', 'Skill level 1–10');
+  add('sourceLink', 'Source link (https://…) — optional');
+
+  const btn = el('button', 'actbtn', 'Save as draft');
+  const out = el('div', 'errline', '');
+  btn.addEventListener('click', async () => {
+    const lines = (v) => v.split('\n').map((x) => x.trim()).filter(Boolean);
+    btn.disabled = true;
+    out.style.color = '';
+    try {
+      const res = await api('/api/reference', {
+        method: 'POST',
+        body: {
+          techniqueName: fields.techniqueName.value.trim(),
+          howTo: fields.howTo.value.trim(),
+          wontWorkWhen: fields.wontWorkWhen.value.trim(),
+          pros: lines(fields.pros.value),
+          cons: lines(fields.cons.value),
+          standardRefs: fields.standardRefs.value.split(',').map((x) => x.trim()).filter(Boolean),
+          skillLevel: Number(fields.skillLevel.value) || 1,
+          sourceLink: fields.sourceLink.value.trim(),
+        },
+      });
+      // Never just "saved" — say that it is still invisible to the crew, and
+      // say what got dropped on the way in.
+      let line = res.line;
+      if (res.refsDropped > 0) line += ' ' + res.refsDropped + ' citation(s) were dropped for not being a clause reference.';
+      if (res.limitsMissing) line += ' No limits recorded — the crew will see a warning in their place.';
+      out.style.color = 'var(--ok)';
+      out.textContent = line;
+      // Clear the form so the next entry does not inherit this one's text —
+      // a half-copied entry in a safety library is worse than a blank one.
+      for (const n of Object.values(fields)) n.value = '';
+      btn.disabled = false;
+      renderLibraryQueue(queueSlot);
+    } catch (e) {
+      btn.disabled = false;
+      out.textContent = e.message === 'name_and_howto_required'
+        ? 'It needs a technique name and a how-to.'
+        : e.message === 'bad_source_link'
+          ? 'A source link has to be an http(s) address.'
+          : 'Could not save that. Nothing was written.';
+    }
+  });
+  c.appendChild(btn);
+  c.appendChild(out);
+  return c;
+}
+
+// ---------- Money (§4.8: bill the work, chase what is owed) ----------
+const STAGE_LABEL = {
+  reminder: ['PAST DUE', 'b-warm'],
+  second_notice: ['SECOND NOTICE', 'b-hot'],
+  final_notice: ['FINAL — CALL THEM', 'b-emg'],
+};
+function money(n) {
+  return '$' + Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+async function renderMoney(slot) {
+  slot.replaceChildren();
+  let m;
+  try {
+    m = await api('/api/money');
+  } catch (e) {
+    if (e.code === 401) return;
+    // §1B: a ledger Arbo could not read is NOT a ledger with nothing owed.
+    slot.appendChild(el('div', 'panel-title', 'Money'));
+    slot.appendChild(state('Ledger unavailable', e.code === 503
+      ? 'Database not connected — Arbo cannot tell you what is owed.'
+      : 'Could not read the invoices. This is not a claim that everything is paid.'));
+    return;
+  }
+
+  if (m.collections.length) {
+    slot.appendChild(el('div', 'panel-title', 'Owed — ' + m.collections.length + ' past due'));
+    for (const a of m.collections) {
+      const inv = m.invoices.find((i) => i.id === a.invoiceId);
+      const c = el('div', 'card' + (a.stage === 'final_notice' ? ' emergency' : ''));
+      const top = el('div', 'toprow');
+      top.appendChild(el('div', 'who', a.name || 'Unknown'));
+      top.appendChild(el('div', 'when', a.daysOverdue + 'd late'));
+      c.appendChild(top);
+      c.appendChild(el('div', 'scope', a.note));
+      const b = el('div', 'badges');
+      const [label, cls] = STAGE_LABEL[a.stage] || [a.stage.toUpperCase(), 'b-src'];
+      b.appendChild(badge(label, cls));
+      if (inv) {
+        b.appendChild(badge(money(inv.amount), 'b-src'));
+        if (inv.lateFeeOwed > 0) b.appendChild(badge('+' + money(inv.lateFeeOwed) + ' LATE FEE (' + inv.lateFeePct + '% CAP)', 'b-flag'));
+      }
+      c.appendChild(b);
+      if (inv) c.appendChild(paidButton(inv.id, slot));
+      slot.appendChild(c);
+    }
+  }
+
+  if (m.drafts.length) {
+    slot.appendChild(el('div', 'panel-title', 'Ready to bill — ' + m.drafts.length));
+    for (const d of m.drafts) {
+      const c = el('div', 'card');
+      const top = el('div', 'toprow');
+      top.appendChild(el('div', 'who', d.name || 'Unknown'));
+      top.appendChild(el('div', 'when', money(d.amount)));
+      c.appendChild(top);
+      c.appendChild(el('div', 'scope', 'Work is done and the agreed figure is on file. Net ' + d.netDays + ', late fee capped at ' + d.lateFeePct + '%.'));
+      const btn = el('button', 'actbtn', 'Draft the invoice');
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        try {
+          await api('/api/invoices', { method: 'POST', body: { jobId: d.jobId } });
+          btn.textContent = 'Drafted';
+          btn.className = 'actbtn done';
+          renderMoney(slot);
+        } catch { btn.disabled = false; }
+      });
+      c.appendChild(btn);
+      slot.appendChild(c);
+    }
+  }
+
+  if (m.blocked.length) {
+    slot.appendChild(el('div', 'panel-title', 'Cannot bill yet — ' + m.blocked.length));
+    for (const x of m.blocked) {
+      const c = el('div', 'card loop-card');
+      c.appendChild(el('div', 'loop-kind', x.name || 'Unknown'));
+      c.appendChild(el('div', 'scope', x.line));
+      slot.appendChild(c);
+    }
+  }
+
+  for (const u of m.unknown) {
+    const c = el('div', 'card loop-card urgent');
+    c.appendChild(el('div', 'loop-kind', '⚠ UNKNOWN'));
+    c.appendChild(el('div', 'scope', u.line));
+    slot.appendChild(c);
+  }
+
+  if (m.suppressed.length) {
+    const box = el('div', 'state');
+    box.appendChild(el('b', '', m.suppressed.length + ' held by the legal gate'));
+    box.appendChild(document.createTextNode('No consent on file or STOP on record — Arbo will not nudge these.'));
+    slot.appendChild(box);
+  }
+
+  // A clean ledger must LOOK different from a section that never ran (§1B).
+  if (!m.collections.length && !m.drafts.length && !m.blocked.length
+      && !m.unknown.length && !m.suppressed.length) {
+    slot.appendChild(el('div', 'panel-title', 'Money'));
+    slot.appendChild(state('Nothing owed, nothing unbilled',
+      'Arbo checked the ledger — every finished job is invoiced and nothing is past due.'));
+  }
+}
+
+function paidButton(invoiceId, slot) {
+  const btn = el('button', 'actbtn', 'Mark paid ✓');
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    try {
+      await api('/api/invoices/' + invoiceId + '/status', { method: 'POST', body: { status: 'paid' } });
+      btn.textContent = 'Recorded';
+      btn.className = 'actbtn done';
+      renderMoney(slot);
+    } catch { btn.disabled = false; }
+  });
+  return btn;
+}
+
+// ---------- Fleet (§6E: units, DOWN status, breakdown reports) ----------
+const UNIT_STATUS = {
+  up: ['UP', 'b-cool'],
+  down: ['DOWN', 'b-emg'],
+  maintenance: ['NEEDS ATTENTION', 'b-warm'],
+};
+// The list and the composer are SEPARATE slots. Refreshing the list after an
+// add must not wipe the line the composer just printed — the composer's own
+// answer ("added with no height on file, routing stays conservative") is the
+// part that matters most, and re-rendering over it would delete it unread.
+async function renderFleet(slot) {
+  slot.replaceChildren();
+  const listSlot = el('div');
+  slot.appendChild(listSlot);
+  const readable = await renderFleetList(listSlot);
+  // No composer over a dead feed: nothing could be written to it anyway, and
+  // offering the form would imply Arbo is talking to the database.
+  if (readable) slot.appendChild(fleetComposer(listSlot));
+}
+
+async function renderFleetList(slot) {
+  slot.replaceChildren();
+  let f;
+  try {
+    f = await api('/api/fleet/units');
+  } catch (e) {
+    if (e.code === 401) return false;
+    // §1B: a dead feed is named, never drawn as a confident "all trucks up".
+    slot.appendChild(el('div', 'panel-title', 'Fleet'));
+    slot.appendChild(state('Fleet status unknown', e.code === 503
+      ? 'Database not connected — Arbo cannot tell you which units are down.'
+      : 'Could not read the fleet. This is not a claim that everything runs.'));
+    return false;
+  }
+  slot.appendChild(el('div', 'panel-title',
+    f.down > 0 ? 'Fleet — ' + f.down + ' unit(s) DOWN, not schedulable' : 'Fleet — all units schedulable'));
+  if (!f.units.length) {
+    slot.appendChild(state('No units on file', 'Add equipment below and it shows up here.'));
+    return true;
+  }
+  for (const u of f.units) {
+    const c = el('div', 'card' + (u.status === 'down' ? ' emergency' : ''));
+    const top = el('div', 'toprow');
+    top.appendChild(el('div', 'who', u.name));
+    top.appendChild(el('div', 'when', u.kind || ''));
+    c.appendChild(top);
+    const b = el('div', 'badges');
+    const [label, cls] = UNIT_STATUS[u.status] || [String(u.status).toUpperCase(), 'b-src'];
+    b.appendChild(badge(label, cls));
+    if (!u.schedulable) b.appendChild(badge('NOT SCHEDULABLE', 'b-flag'));
+    if (u.openTasks > 0) b.appendChild(badge(u.openTasks + ' OPEN TASK' + (u.openTasks === 1 ? '' : 'S'), 'b-warm'));
+    c.appendChild(b);
+    // §6M2.4: a null clearance is UNKNOWN and the router stays conservative.
+    // Say that on the card, so nobody assumes the number is simply missing.
+    if (!u.heightInches || !u.weightLbsLoaded) {
+      b.appendChild(badge('SIZE UNKNOWN — ROUTED CONSERVATIVELY', 'b-verify'));
+    }
+    const btn = el('button', 'actbtn', 'Report a breakdown');
+    btn.addEventListener('click', () => openBreakdown(u));
+    c.appendChild(btn);
+    c.appendChild(partAdder(u, slot));
+    const off = el('button', 'actbtn', 'Retire this unit');
+    const offerr = el('div', 'errline', '');
+    off.addEventListener('click', async () => {
+      off.disabled = true;
+      try {
+        const res = await api('/api/fleet/units/' + u.id + '/retire', { method: 'POST', body: {} });
+        // Open tasks leave the board with the unit — never silently.
+        if (res.openTasksAtRetirement > 0) window.alert(res.line);
+        renderFleetList(slot);
+      } catch (ex) {
+        off.disabled = false;
+        offerr.textContent = ex.code === 409 ? 'Already retired.' : 'Could not do that. Nothing was changed.';
+      }
+    });
+    c.appendChild(off);
+    c.appendChild(offerr);
+    slot.appendChild(c);
+  }
+  // Returning true is what tells renderFleet the feed was readable. Falling off
+  // the end here returned undefined, so the guarded composer never rendered and
+  // a leftover one — appended into THIS slot — took its place and wiped its own
+  // confirmation on every successful add.
+  return true;
+}
+
+// A part that fits this unit. The breakdown plan reads these — with none on
+// file it says "no parts history", which is not the same as "no part needed".
+function partAdder(unit, slot) {
+  const wrap = el('div', 'field');
+  const num = document.createElement('input');
+  num.type = 'text';
+  num.placeholder = 'Part number that fits this unit';
+  const sup = document.createElement('input');
+  sup.type = 'text';
+  sup.placeholder = 'Supplier (optional)';
+  const fit = document.createElement('input');
+  fit.type = 'text';
+  fit.placeholder = 'Also fits — e.g. both chippers (optional)';
+  const btn = el('button', 'actbtn', 'Save the part');
+  const out = el('div', 'errline', '');
+  btn.addEventListener('click', async () => {
+    if (!num.value.trim()) { out.textContent = 'Needs a part number.'; return; }
+    btn.disabled = true;
+    try {
+      await api('/api/fleet/units/' + unit.id + '/part', {
+        method: 'POST',
+        body: {
+          partNumber: num.value.trim(),
+          supplier: sup.value.trim(),
+          sharedFitment: fit.value.trim(),
+        },
+      });
+      out.style.color = 'var(--ok)';
+      out.textContent = 'Saved. It will show up in the breakdown plan for this unit.';
+      num.value = '';
+      sup.value = '';
+      fit.value = '';
+      btn.disabled = false;
+    } catch (e) {
+      btn.disabled = false;
+      out.style.color = '';
+      out.textContent = e.code === 404
+        ? 'That unit is not on file any more.'
+        : e.code === 409
+          ? 'That unit is retired.'
+          : 'Could not save that. Nothing was written.';
+    }
+  });
+  wrap.appendChild(num);
+  wrap.appendChild(sup);
+  wrap.appendChild(fit);
+  wrap.appendChild(btn);
+  wrap.appendChild(out);
+  return wrap;
+}
+
+function fleetComposer(listSlot) {
+  const slot = listSlot;
+  const c = el('div', 'card');
+  c.appendChild(el('div', 'loop-kind', 'Add a unit to the fleet'));
+  c.appendChild(el('div', 'scope',
+    'Leave height and weight blank if you do not know them. Arbo routes an unknown unit '
+    + 'conservatively — a guessed clearance is worse than none, because routing would trust it.'));
+  const row = el('div', 'field');
+  const mk = (ph) => { const n = document.createElement('input'); n.type = 'text'; n.placeholder = ph; row.appendChild(n); return n; };
+  const name = mk('Name — e.g. Chip truck 1');
+  const kind = mk('Kind — chip truck / chipper / crane');
+  const vin = mk('VIN or serial');
+  const height = mk('Height in inches (optional)');
+  const weight = mk('Loaded weight in lbs (optional)');
+  c.appendChild(row);
+  const btn = el('button', 'actbtn', 'Add the unit');
+  const out = el('div', 'errline', '');
+  btn.addEventListener('click', async () => {
+    if (!name.value.trim() || !kind.value.trim() || !vin.value.trim()) {
+      out.style.color = '';
+      out.textContent = 'Needs a name, a kind, and a VIN or serial.';
+      return;
+    }
+    btn.disabled = true;
+    try {
+      const res = await api('/api/fleet/units', {
+        method: 'POST',
+        body: {
+          name: name.value.trim(), kind: kind.value.trim(), vinOrSerial: vin.value.trim(),
+          heightInches: height.value.trim(), weightLbsLoaded: weight.value.trim(),
+        },
+      });
+      // An unmeasured unit is a warning, not a win — it changes how it routes.
+      out.style.color = res.dimensionsKnown ? 'var(--ok)' : 'var(--warning)';
+      out.textContent = res.line;
+      name.value = ''; kind.value = ''; vin.value = ''; height.value = ''; weight.value = '';
+      btn.disabled = false;
+      renderFleetList(slot);
+    } catch (e) {
+      btn.disabled = false;
+      out.style.color = '';
+      out.textContent = e.code === 409
+        ? 'That VIN or serial is already on a unit.'
+        : 'Could not add it. Nothing was written.';
+    }
+  });
+  c.appendChild(btn);
+  c.appendChild(out);
+  return c;
+}
+
+let BREAKDOWN_UNIT = null;
+function openBreakdown(u) {
+  BREAKDOWN_UNIT = u;
+  $('bd-unit').textContent = u.name;
+  $('bd-desc').value = '';
+  $('bd-down').checked = false;
+  $('bd-out').replaceChildren();
+  $('bd').classList.add('show');
+}
+$('bd-close').addEventListener('click', () => $('bd').classList.remove('show'));
+$('bd-go').addEventListener('click', async () => {
+  const out = $('bd-out');
+  out.replaceChildren();
+  const description = $('bd-desc').value.trim();
+  if (!BREAKDOWN_UNIT || !description) {
+    out.appendChild(state('Say what broke', 'A blank report tells nobody anything.'));
+    return;
+  }
+  $('bd-go').disabled = true;
+  let plan;
+  try {
+    plan = await api('/api/fleet/breakdown', {
+      method: 'POST',
+      body: { unitId: BREAKDOWN_UNIT.id, description, immobilized: $('bd-down').checked, reportedBy: 'owner' },
+    });
+  } catch (e) {
+    out.appendChild(state('Not filed', 'The report did not save (' + (e.message || 'error') + '). Nothing was changed.'));
+    $('bd-go').disabled = false;
+    return;
+  }
+  $('bd-go').disabled = false;
+  out.appendChild(el('div', 'panel-title', 'Unit is now ' + String(plan.newStatus).toUpperCase()));
+  for (const s of plan.steps) out.appendChild(el('div', 'scope', '• ' + s));
+  for (const u of plan.unknowns) {
+    const w = el('div', 'card loop-card urgent');
+    w.appendChild(el('div', 'loop-kind', '⚠ UNKNOWN'));
+    w.appendChild(el('div', 'scope', u));
+    out.appendChild(w);
+  }
+  for (const l of plan.supplierLinks) {
+    const a = el('a', '', l.label);
+    a.href = l.url; a.target = '_blank'; a.rel = 'noopener noreferrer';
+    const row = el('div', 'scope');
+    row.appendChild(a);
+    out.appendChild(row);
+  }
+  out.appendChild(el('div', 'internal-tag',
+    'Arbo never places the order and holds no card — you click, you buy (§6E2.3).'));
+  renderFollowUps();
+});
+
+// ---------- Follow-ups (§16–20 queue: ARBOR recommends, you approve) ----------
+const FU_LABEL = {
+  estimate_follow_up: ['FOLLOW-UP', 'b-warm'],
+  review_request: ['REVIEW ASK', 'b-cool'],
+  no_show_saver: ['NO-SHOW SAVE', 'b-hot'],
+  seasonal_outreach: ['SEASONAL', 'b-src'],
+  growth_outreach: ['COMING DUE', 'b-repeat'],
+};
+async function renderFollowUps() {
+  const v = $('view-followups');
+  v.replaceChildren();
+  let q;
+  try {
+    q = await api('/api/followups');
+  } catch (e) {
+    if (e.code === 401) return showKeywall();
+    v.appendChild(state('No follow-up queue yet', e.code === 503
+      ? 'Database not connected — the queue builds itself the moment it is.'
+      : 'Could not load follow-ups. Pull refresh to retry.'));
+    return;
+  }
+  // §1E open loops lead the Queue: the things the day silently dropped.
+  const loopsSlot = el('div');
+  v.appendChild(loopsSlot);
+  api('/api/queue').then((qq) => {
+    if (!qq.open.length) return;
+    loopsSlot.appendChild(el('div', 'panel-title', 'Open loops — silence is never success'));
+    for (const o of qq.open) loopsSlot.appendChild(loopCard(o));
+  }).catch(() => {});
+  // §6V safety leads the Queue: a lapsed rescue card outranks an unpaid bill.
+  const safetySlot = el('div');
+  v.appendChild(safetySlot);
+  renderSafety(safetySlot);
+  // §4: the safety board above checks people against cards. This is the only
+  // place either one can be put on file.
+  const rosterSlot = el('div');
+  v.appendChild(rosterSlot);
+  renderRoster(rosterSlot);
+  // §6M.5: a man nobody has ever tested is an open loop too.
+  const trainSlot = el('div');
+  v.appendChild(trainSlot);
+  renderTrainingBoard(trainSlot);
+  // §4.7: a safety lesson waiting on Mike's name is an open loop too.
+  const vetSlot = el('div');
+  v.appendChild(vetSlot);
+  renderVetting(vetSlot);
+  // §6U: an entry the crew cannot see because nobody signed it off is an open
+  // loop too — and this is the only place the library can be written at all.
+  const libSlot = el('div');
+  v.appendChild(libSlot);
+  renderLibraryDesk(libSlot);
+  // §4.8 money: unbilled work and unpaid invoices are open loops too.
+  const moneySlot = el('div');
+  v.appendChild(moneySlot);
+  renderMoney(moneySlot);
+  // §6E fleet: a DOWN unit is a scheduling constraint, so it belongs in the
+  // Queue next to the other open loops.
+  const fleetSlot = el('div');
+  v.appendChild(fleetSlot);
+  renderFleet(fleetSlot);
+  v.appendChild(el('div', 'panel-title', 'Recommended sends'));
+  const note = el('div', 'zip-run');
+  note.appendChild(document.createTextNode('Arbo recommends — nothing sends without you.'));
+  v.appendChild(note);
+  if (!q.due.length) {
+    v.appendChild(state('Queue clear', 'Estimate follow-ups, review asks, and no-show saves land here when due.'));
+  }
+  for (const a of q.due) {
+    const c = el('div', 'card' + (a.type === 'no_show_saver' ? ' emergency' : ''));
+    const top = el('div', 'toprow');
+    top.appendChild(el('div', 'who', a.name || 'Unknown'));
+    top.appendChild(el('div', 'when', fmtTime(a.scheduledFor)));
+    c.appendChild(top);
+    c.appendChild(el('div', 'scope', a.note));
+    const b = el('div', 'badges');
+    const [label, cls] = FU_LABEL[a.type] || [a.type.toUpperCase(), 'b-src'];
+    b.appendChild(badge(label, cls));
+    if (a.includeProofOfInsurance) b.appendChild(badge('+ PROOF OF INSURANCE', 'b-verify'));
+    c.appendChild(b);
+    // "I sent it" — the only way the cadence advances (ARBOR never marks its
+    // own recommendations done). Only estimate/review items have a cadence to
+    // advance; seasonal + growth nudges are one-shot suggestions.
+    if (a.type === 'estimate_follow_up' || a.type === 'no_show_saver' || a.type === 'review_request') {
+      const kind = a.type === 'review_request' ? 'review' : 'estimate';
+      const btn = el('button', 'actbtn', 'Mark sent ✓');
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        try {
+          await api('/api/followups/' + kind + '/' + a.targetId + '/sent', { method: 'POST', body: {} });
+          btn.textContent = 'Recorded';
+          btn.className = 'actbtn done';
+        } catch { btn.disabled = false; }
+      });
+      c.appendChild(btn);
+    }
+    v.appendChild(c);
+  }
+  if (q.suppressed.length) {
+    const s = el('div', 'state');
+    s.appendChild(el('b', '', q.suppressed.length + ' held by the legal gate'));
+    s.appendChild(document.createTextNode('No consent on file or STOP on record — these never send.'));
+    v.appendChild(s);
+  }
+}
+
+// ---------- Shell ----------
+function showKeywall(msg) {
+  $('keyerr').textContent = msg || '';
+  $('keywall').classList.add('show');
+}
+$('keygo').addEventListener('click', async () => {
+  KEY = $('keyinput').value.trim();
+  localStorage.setItem('arborKey', KEY);
+  try {
+    await api('/api/leads?limit=1');
+    $('keywall').classList.remove('show');
+    refreshAll();
+  } catch (e) {
+    if (e.code === 401) showKeywall('That key didn’t work — check it and try again.');
+    else { $('keywall').classList.remove('show'); refreshAll(); }
+  }
+});
+$('keyinput').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('keygo').click(); });
+
+// ---------- Settings (cycle 34): every lead channel gets its own switch ----------
+async function renderSettings() {
+  const v = $('view-settings');
+  v.replaceChildren();
+  v.appendChild(el('div', 'panel-title', 'Lead channel switches'));
+  let s;
+  try { s = await api('/api/settings/channels'); }
+  catch (e) {
+    if (e.code === 401) return showKeywall();
+    // A dead settings feed is NAMED — and nothing was changed (§1B).
+    v.appendChild(state('Settings unavailable', 'Could not load the channel switches. Nothing was changed.'));
+    return;
+  }
+  // The honesty line: these are runtime switches until the data links carry a durable home.
+  v.appendChild(el('div', 'storm-muted', 'Switches apply to the inbox check immediately. They reset to the coded defaults on a redeploy \u2014 a durable home comes with the data links.'));
+  for (const c of s.channels) {
+    const row = el('div', 'loc-strip');
+    const btn = el('button', 'loc-toggle' + (c.on ? ' on' : ''), c.on ? 'ON' : 'OFF');
+    btn.onclick = async () => {
+      btn.disabled = true;
+      try { await api('/api/settings/channels', { method: 'POST', body: { id: c.id, on: !c.on } }); } catch (e) {}
+      renderSettings();
+    };
+    row.appendChild(btn);
+    row.appendChild(el('span', '', c.label));
+    v.appendChild(row);
+  }
+
+  // R15: today's work ZIP — powers the "easy to fit you in this week" offer.
+  v.appendChild(el('div', 'panel-title', "Today's work ZIP"));
+  let rz = null;
+  try { rz = await api('/api/settings/route'); } catch (e) {}
+  if (!rz) {
+    v.appendChild(el('div', 'storm-muted', 'Work-ZIP setting unavailable right now. Nothing was changed.'));
+  } else {
+    v.appendChild(el('div', 'storm-muted', 'Where Mike is working today \u2014 callers in or near this ZIP get offered an easy weekday estimate. In-memory: set it each morning; resets on redeploy.'));
+    const zrow = el('div', 'loc-strip');
+    const zin = document.createElement('input');
+    zin.id = 'workzip-input'; zin.inputMode = 'numeric'; zin.maxLength = 5; zin.placeholder = '23452';
+    zin.value = rz.workZip || '';
+    zin.style.cssText = 'min-height:48px;border:1px solid var(--border);border-radius:8px;background:var(--surface);color:inherit;padding:0 12px;width:110px;font-size:16px';
+    const zbtn = el('button', 'loc-toggle on', 'Save');
+    zbtn.onclick = async () => {
+      zbtn.disabled = true;
+      try { await api('/api/settings/route', { method: 'POST', body: { workZip: zin.value.trim() || null } }); } catch (e) {}
+      renderSettings();
+    };
+    zrow.appendChild(zin); zrow.appendChild(zbtn);
+    v.appendChild(zrow);
+
+    // R15/R16: the live office-phone location — one honest toggle.
+    v.appendChild(el('div', 'panel-title', 'Live location (office phone)'));
+    const loc = rz.location || { enabled: false, zip: null, ageMinutes: null };
+    const lrow = el('div', 'loc-strip');
+    const lbtn = el('button', 'loc-toggle' + (loc.enabled ? ' on' : ''), loc.enabled ? 'ON' : 'OFF');
+    lbtn.onclick = async () => {
+      lbtn.disabled = true;
+      try { await api('/api/settings/location', { method: 'POST', body: { on: !loc.enabled } }); } catch (e) {}
+      renderSettings();
+    };
+    lrow.appendChild(lbtn);
+    lrow.appendChild(el('span', '', loc.enabled
+      ? (loc.zip ? 'Live \u2014 last ping ' + loc.ageMinutes + ' min ago' : 'ON \u2014 no fresh ping yet (phone posts 8am\u20138pm, Mon\u2013Sat)')
+      : 'OFF \u2014 no location is received or kept'));
+    v.appendChild(lrow);
+  }
+
+  // R19: the data links, one by one. Read-only here on purpose \u2014 a link
+  // opens by setting its variable on Railway AFTER its verification passes,
+  // never from a button in the app.
+  v.appendChild(el('div', 'panel-title', 'Data links'));
+  try {
+    const dl = await api('/api/links');
+    v.appendChild(el('div', 'storm-muted', dl.master === 'live'
+      ? 'Master switch LIVE. A CUT link is a closed door, not empty data \u2014 each opens after its verification (R19).'
+      : 'Master switch CUT \u2014 every link is closed whatever its own setting. A closed door is not empty data.'));
+    for (const l of dl.links) {
+      const row = el('div', 'loc-strip');
+      const pill = el('span', 'loc-toggle' + (l.state === 'open' ? ' on' : ''), l.state === 'open' ? 'OPEN' : 'CUT');
+      row.appendChild(pill);
+      const counts = l.rowCounts
+        ? ' \u2014 ' + Object.entries(l.rowCounts).map(([t, n]) => t + ': ' + n).join(', ')
+        : '';
+      row.appendChild(el('span', '', l.link + counts));
+      v.appendChild(row);
+    }
+  } catch (e) {
+    v.appendChild(el('div', 'storm-muted', 'Link status unavailable right now.'));
+  }
+
+  // R19: the webhook wires \u2014 every source that can push to Arbo, named.
+  v.appendChild(el('div', 'panel-title', 'Webhooks'));
+  try {
+    const wh = await api('/api/webhooks');
+    for (const [name, s] of Object.entries(wh.sources)) {
+      const row = el('div', 'loc-strip');
+      if ((wh.cut || []).indexOf(name) !== -1) {
+        row.appendChild(el('span', 'loc-toggle', 'CUT'));
+        row.appendChild(el('span', '', name + ' \u2014 disconnected while Sona handles calls (R21)'));
+        v.appendChild(row);
+        continue;
+      }
+      row.appendChild(el('span', 'loc-toggle' + (s.configured ? ' on' : ''), s.configured ? 'WIRED' : 'NOT WIRED'));
+      row.appendChild(el('span', '', name + (s.configured
+        ? ' \u2014 ' + s.received + ' received' + (s.lastAt ? ', last ' + fmtTime(s.lastAt) : ' since deploy')
+        : ' \u2014 no secret on the server; this is not zero events')));
+      v.appendChild(row);
+    }
+  } catch (e) {
+    v.appendChild(el('div', 'storm-muted', 'Webhook status unavailable right now.'));
+  }
+}
+
+function switchTab(which) {
+  for (const t of ['today', 'leads', 'cal', 'book', 'followups', 'calls', 'perf', 'settings']) {
+    $('view-' + t).classList.toggle('active', which === t);
+    const tb = $('tab-' + t); // Settings opens from the header gear — it has no nav tab
+    if (tb) tb.classList.toggle('active', which === t);
+  }
+}
+for (const t of ['today', 'leads', 'cal', 'book', 'followups', 'calls', 'perf']) {
+  $('tab-' + t).addEventListener('click', () => switchTab(t));
+}
+
+function refreshAll() { renderToday(); renderLeads(); renderCalendar(); renderBook(); renderFollowUps(); renderCalls(); renderPerformance(); }
+$('refresh').addEventListener('click', refreshAll);
+$('settings-btn').addEventListener('click', () => { switchTab('settings'); renderSettings(); });
+
+$('dateline').textContent = new Date().toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+refreshAll();
+setInterval(refreshAll, 60000);
+</script>
+</body>
+</html>

@@ -1,0 +1,874 @@
+<!doctype html>
+<!--
+  ═══════════════════════════════════════════════════════════════════════
+  SLOW::ARBO   ← this marker IS this note. Wherever it appears, all of
+               it applies: in a file, a commit, a doc, or from Mike.
+  STOP. READ THIS BEFORE YOU CHANGE ONE CHARACTER OF THIS PAGE.
+  Owner instruction from Mike, 2026-08-03. This is not decoration and it
+  is not optional. It is here because this is the point in a build where
+  things get broken by moving fast, and that already happened to him once
+  on the website. It does not happen here.
+  ═══════════════════════════════════════════════════════════════════════
+
+  SLOW DOWN. DRASTICALLY. Then:
+
+  1. READ EVERY LINE BEFORE YOU EDIT ONE. Every line, every letter,
+     slowly. You are not skimming to find the spot to change — you are
+     building a model of what this file already does. If you cannot say
+     what the code above and below your edit does, you have not read it.
+
+  2. AN AUDIT IS READ-ONLY. If you were asked to audit, you do not edit.
+     You do not "fix it while you are in there." You do not refactor, or
+     tidy, or rename. You READ, and you REPORT. Editing during an audit
+     is disobeying the instruction, full stop.
+
+  3. THINK BEFORE YOU TYPE. What does this already handle? What depends
+     on it? What breaks downstream? Recognise the PATTERN before you call
+     something a bug — most things in here that look wrong are a
+     deliberate correction. Check docs/OWNER_RULINGS.md first. Use what
+     you already know about this codebase instead of re-deciding it.
+
+  4. BRING IT TO MIKE — DO NOT DECIDE IT. Anything that looks wrong,
+     ambiguous, or outside what was asked: say it and WAIT. Flagging
+     costs one sentence. Deciding on his behalf has cost real work and
+     real money more than once.
+
+  5. DO EXACTLY WHAT WAS ASKED. Not the adjacent thing. Not the bigger
+     thing you thought of on the way. Not the cleanup. Exactly what was
+     asked, and nothing else.
+
+  If you are moving fast right now, you are already off the rails.
+
+  Remember the marker: SLOW::ARBO
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0B0D10">
+<link rel="manifest" href="/crew.webmanifest">
+<link rel="apple-touch-icon" href="/icons/arbo-180.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Arbo Crew">
+<title>Arbo Crew — Art-is-Tree</title>
+<style>
+/* §8C.1: one app, two doors. This is the CREW door. Nothing on this page can
+   reach Mike's half — the server payload has no slot for price, tracking, or
+   customer contact, and this page never asks for any. §9 cockpit palette. */
+:root{
+  --forest:#7C3AED; --canopy:#A78BFA; --ink:#E9ECF1; --surface:#15181D;
+  --surface-alt:#0B0D10; --border:#2A2F37; --muted:#98A0AC;
+  --emergency:#FF5A52; --warning:#FFB020; --ok:#37C98B; --info:#5AA9FF;
+  --r-md:10px; --r-lg:16px;
+  --shadow-card:inset 0 1px 0 rgba(255,255,255,.03),0 2px 10px rgba(0,0,0,.5);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font-size:17px;line-height:1.4;color:var(--ink);background:var(--surface-alt);
+  padding-bottom:calc(24px + env(safe-area-inset-bottom))}
+header{background:var(--surface-alt);border-bottom:1px solid var(--border);
+  box-shadow:0 1px 0 rgba(124,58,237,.45);padding:14px 16px 12px;
+  padding-top:calc(14px + env(safe-area-inset-top));position:sticky;top:0;z-index:10}
+.brand{font-size:23px;font-weight:900;letter-spacing:.12em}
+.brand small{color:var(--canopy);font-weight:600;font-size:14px;margin-left:8px;letter-spacing:.04em}
+#dateline{font-size:14px;color:var(--muted);margin-top:2px}
+main{padding:16px;max-width:640px;margin:0 auto}
+.panel-title{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:900;
+  letter-spacing:.16em;color:var(--canopy);text-transform:uppercase;margin:18px 0 10px}
+.panel-title::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--border),transparent)}
+
+/* The gate (§6V.4) — the day stays locked until all three land. */
+#gate{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:16px;margin-bottom:16px;box-shadow:var(--shadow-card)}
+#gate.locked{border-color:var(--warning)}
+#gate.unlocked{border-color:var(--ok)}
+.gate-head{font-size:13px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--warning);margin-bottom:10px}
+#gate.unlocked .gate-head{color:var(--ok)}
+#brief-body{max-height:280px;overflow-y:auto;border:1px solid var(--border);border-radius:var(--r-md);
+  padding:14px;background:var(--surface-alt);font-size:16px;line-height:1.55}
+#brief-body p{margin-bottom:10px}
+#brief-body .clause{font-size:12px;color:var(--muted);font-weight:700;letter-spacing:.06em}
+.ackrow{display:flex;align-items:center;gap:12px;margin-top:14px;min-height:48px}
+.ackrow input{width:26px;height:26px;accent-color:var(--forest);flex:none}
+.ackrow label{font-size:15px;font-weight:700}
+.gate-status{font-size:13px;color:var(--muted);margin-top:8px;min-height:20px}
+#gobtn{width:100%;min-height:60px;margin-top:14px;border:0;border-radius:var(--r-md);
+  background:var(--surface-alt);color:var(--muted);border:1.5px solid var(--border);
+  font-size:19px;font-weight:900;letter-spacing:.14em;cursor:not-allowed}
+#gobtn.ready{background:linear-gradient(180deg,#8B5CF6,#6D28D9);color:#fff;border:0;cursor:pointer;
+  box-shadow:0 4px 18px rgba(124,58,237,.4)}
+#gobtn.done{background:var(--surface);color:var(--ok);border:1.5px solid var(--ok);cursor:default}
+
+/* Clock-in question (§6M). Field-sized targets: gloves, sunlight, one hand. */
+.paynote{font-size:13px;font-weight:800;color:var(--ok);margin-bottom:10px}
+#quiz .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-md);
+  padding:16px;margin-bottom:12px;box-shadow:var(--shadow-card)}
+.qtopic{font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);margin-bottom:6px}
+.qprompt{font-size:18px;font-weight:800;line-height:1.4;margin-bottom:12px}
+.qopt{display:block;width:100%;min-height:56px;margin-bottom:10px;padding:12px 14px;
+  text-align:left;font-size:16px;font-weight:700;border-radius:var(--r-md);
+  background:var(--surface-alt);color:var(--ink);border:1.5px solid var(--border);cursor:pointer}
+.qopt.picked{border-color:var(--forest);background:rgba(124,58,237,.16);color:#fff}
+.qopt:last-child{margin-bottom:0}
+.jobaction{margin-top:10px}
+.jobbtn{width:100%;min-height:52px;border-radius:var(--r-md);border:1.5px solid var(--border);
+  background:var(--surface-alt);color:var(--ink);font-size:15px;font-weight:800;cursor:pointer}
+.jobbtn.done{border-color:var(--ok);color:var(--ok)}
+.jobout{margin-top:8px}
+.gapline{font-size:14px;font-weight:700;color:var(--warning);line-height:1.4;margin-top:6px}
+.okline{font-size:14px;color:var(--muted);line-height:1.4;margin-top:6px}
+.qprogress{font-size:13px;font-weight:800;color:var(--muted);margin-bottom:10px}
+.shortfall{font-size:14px;font-weight:700;color:var(--warning);margin-bottom:10px;line-height:1.4}
+#quiz .scope{font-size:15px;color:var(--muted);line-height:1.5}
+.gate-go{width:100%;min-height:56px;margin-top:4px;border:0;border-radius:var(--r-md);
+  background:linear-gradient(180deg,#8B5CF6,#6D28D9);color:#fff;
+  font-size:17px;font-weight:900;letter-spacing:.1em;cursor:pointer}
+.gate-go:disabled{background:var(--surface-alt);color:var(--muted);
+  border:1.5px solid var(--border);cursor:not-allowed}
+
+/* Work orders */
+.wo{background:var(--surface);border:1px solid var(--border);border-left:4px solid var(--forest);
+  border-radius:var(--r-md);padding:16px;margin-bottom:12px;box-shadow:var(--shadow-card)}
+.wo .top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:6px}
+.wo .num{display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;
+  border-radius:50%;background:var(--forest);color:#fff;font-size:15px;font-weight:800;flex:none}
+.wo .when{font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:16px;
+  font-weight:800;color:var(--canopy);white-space:nowrap}
+.wo .addr{font-size:18px;font-weight:800;line-height:1.3;margin:2px 0}
+.wo .addr a{color:var(--info);text-decoration:none}
+.wo .scope{font-size:15px;color:var(--muted);margin-top:6px}
+.hz{display:flex;align-items:flex-start;gap:8px;background:#2A1D06;border:1px solid var(--warning);
+  color:#FFD9A0;border-radius:var(--r-md);padding:10px 12px;margin-top:10px;font-size:14px;font-weight:700}
+.hz.power{background:#2A0E0C;border-color:var(--emergency);color:#FFB3AE}
+.permit{background:#1D1530;border:1.5px solid var(--forest);color:#D6C7FF;border-radius:var(--r-md);
+  padding:10px 12px;margin-top:10px;font-size:14px;font-weight:700}
+.photos{font-size:13px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;
+  color:var(--muted);margin-top:10px}
+.locked-note{text-align:center;padding:36px 20px;color:var(--muted);font-size:16px;
+  background:var(--surface);border:1px dashed var(--border);border-radius:var(--r-lg)}
+.state{text-align:center;padding:40px 24px;color:var(--muted);
+  background:var(--surface);border:1px dashed var(--border);border-radius:var(--r-lg)}
+.state b{display:block;font-size:19px;color:var(--ink);margin-bottom:8px}
+.errline{color:#FF9B95;font-weight:600;margin-top:10px}
+#whoami{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);
+  padding:16px;margin-bottom:16px;box-shadow:var(--shadow-card)}
+#whoami h2{font-size:15px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--canopy);margin-bottom:6px}
+#whoami p{font-size:15px;color:var(--muted);margin-bottom:12px}
+#whoami input{width:100%;min-height:56px;border:1px solid var(--border);border-radius:var(--r-md);
+  background:var(--surface-alt);color:var(--ink);padding:0 14px;font-size:17px;margin-bottom:10px;
+  font-family:ui-monospace,'SF Mono',Menlo,Consolas,monospace}
+#whoami button{width:100%;min-height:52px;border:0;border-radius:var(--r-md);
+  background:linear-gradient(180deg,#8B5CF6,#6D28D9);color:#fff;font-size:16px;font-weight:800;cursor:pointer}
+.signed{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  font-size:13px;color:var(--muted);margin-bottom:14px}
+#whoami .signed button{width:auto;flex:none;min-height:40px;border:1px solid var(--border);
+  border-radius:999px;background:var(--surface);color:var(--muted);font-size:12px;font-weight:800;
+  padding:0 14px;cursor:pointer}
+#whoami .signed{margin-bottom:0}
+/* Reference library (§6U). A crew member holding a saw in one hand gets big
+   targets and short lines. Limits are styled LOUDER than the how-to, because
+   the paragraph that keeps someone out of a bad cut is the one that matters. */
+#library{margin-top:28px}
+#lib-card{border:1px solid var(--border);border-radius:14px;padding:16px;background:var(--surface)}
+#lib-card .why{color:var(--muted);font-size:14px;line-height:1.5;margin-bottom:12px}
+#lib-q{width:100%;min-height:56px;border:1px solid var(--border);border-radius:12px;
+  background:var(--surface-alt);color:var(--ink);font-size:17px;padding:0 14px;font-family:inherit}
+#lib-go{width:100%;min-height:56px;margin-top:12px;border:0;border-radius:12px;
+  background:var(--forest);color:#fff;font-size:17px;font-weight:800;cursor:pointer}
+#lib-go:disabled{opacity:.55}
+#lib-out{margin-top:12px}
+.lib-note{font-size:14px;color:var(--muted);line-height:1.5;margin-bottom:10px}
+.lib-warn{font-size:15px;font-weight:700;color:var(--warning);line-height:1.5;margin-bottom:10px}
+.lib-entry{border:1px solid var(--border);border-left:4px solid var(--forest);border-radius:var(--r-md);
+  padding:14px;margin-top:12px;background:var(--surface-alt)}
+.lib-name{font-size:18px;font-weight:900;line-height:1.3}
+.lib-above{display:inline-block;margin-top:8px;padding:8px 12px;border-radius:var(--r-md);
+  background:#2A1D06;border:1px solid var(--warning);color:#FFD9A0;font-size:14px;font-weight:800;line-height:1.4}
+.lib-how{font-size:16px;line-height:1.55;margin-top:10px;white-space:pre-wrap}
+.lib-sub{font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--muted);margin-top:12px;margin-bottom:4px}
+.lib-li{font-size:15px;line-height:1.5;padding-left:14px;text-indent:-14px}
+.lib-limits{background:#2A0E0C;border:1.5px solid var(--emergency);color:#FFB3AE;
+  border-radius:var(--r-md);padding:12px;margin-top:12px;font-size:15px;font-weight:700;line-height:1.5}
+.lib-clause{font-size:13px;color:var(--muted);font-weight:700;letter-spacing:.04em;margin-top:12px;line-height:1.5}
+.lib-src{display:inline-block;margin-top:10px;color:var(--info);font-size:14px;font-weight:700}
+
+/* Near-miss filing. Deliberately plain and always reachable — a report that
+   takes effort is a report that never happens. */
+#nearmiss{margin-top:28px}
+#nm-card{border:1px solid var(--border);border-radius:14px;padding:16px;background:var(--surface)}
+#nm-card .why{color:var(--muted);font-size:14px;line-height:1.5;margin-bottom:12px}
+#nm-desc{width:100%;min-height:88px;border:1px solid var(--border);border-radius:12px;
+  background:var(--bg);color:var(--ink);font-size:17px;padding:12px;font-family:inherit;resize:vertical}
+#nm-go{width:100%;min-height:56px;margin-top:12px;border:0;border-radius:12px;
+  background:var(--forest);color:#fff;font-size:17px;font-weight:800;cursor:pointer}
+#nm-go:disabled{opacity:.55}
+#nm-out{margin-top:12px;font-size:15px;line-height:1.5}
+#nm-out.ok{color:var(--ok)}
+#nm-out.err{color:var(--emergency)}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand">ARBO<small>Crew</small></div>
+  <div id="dateline"></div>
+</header>
+<main>
+  <div id="whoami"></div>
+  <div id="gate-slot"></div>
+  <div id="quiz"></div>
+  <div id="work"></div>
+  <div id="library"></div>
+  <div id="nearmiss"></div>
+</main>
+
+<script>
+'use strict';
+// All server text is rendered via textContent — XSS-safe by construction.
+const $ = (id) => document.getElementById(id);
+const el = (tag, cls, text) => {
+  const n = document.createElement(tag);
+  if (cls) n.className = cls;
+  if (text !== undefined) n.textContent = text;
+  return n;
+};
+let KEY = localStorage.getItem('arboCrewKey') || '';
+let CREW_ID = localStorage.getItem('arboCrewId') || '';
+async function api(path, opts) {
+  const res = await fetch(path, {
+    method: (opts && opts.method) || 'GET',
+    headers: Object.assign({ 'content-type': 'application/json' }, KEY ? { 'x-arbor-key': KEY } : {}),
+    body: opts && opts.body ? JSON.stringify(opts.body) : undefined,
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw Object.assign(new Error(body.error || 'error'), { code: res.status });
+  return body;
+}
+function fmtTime(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+}
+
+// ---- The gate (§6V.4). Three conditions; the SERVER decides, not this page.
+const GATE = {
+  content: null,
+  startedAt: new Date().toISOString(),
+  scrolled: false,
+  checked: false,
+  openedMs: Date.now(),
+  unlocked: false,
+};
+
+function renderGate(brief) {
+  GATE.content = brief;
+  const slot = $('gate-slot');
+  slot.replaceChildren();
+  const box = el('div', 'locked');
+  box.id = 'gate';
+  box.appendChild(el('div', 'gate-head', 'Morning safety briefing — required'));
+
+  const body = el('div');
+  body.id = 'brief-body';
+  for (const para of brief.body.split('\n').filter(Boolean)) body.appendChild(el('p', '', para));
+  if (brief.standardRefs && brief.standardRefs.length) {
+    body.appendChild(el('div', 'clause', 'Per ' + brief.standardRefs.join(' · ') + ' — verify on site.'));
+  }
+  body.addEventListener('scroll', () => {
+    if (body.scrollTop + body.clientHeight >= body.scrollHeight - 4) { GATE.scrolled = true; refreshGate(); }
+  });
+  box.appendChild(body);
+
+  const row = el('div', 'ackrow');
+  const cb = document.createElement('input');
+  cb.type = 'checkbox'; cb.id = 'ackbox';
+  cb.addEventListener('change', () => { GATE.checked = cb.checked; refreshGate(); });
+  const lab = el('label', '', 'I read this briefing and understand it.');
+  lab.htmlFor = 'ackbox';
+  row.appendChild(cb); row.appendChild(lab);
+  box.appendChild(row);
+
+  box.appendChild(el('div', 'gate-status', ''))
+    .setAttribute('id', 'gate-status');
+
+  const go = el('button', '', 'GO');
+  go.id = 'gobtn';
+  go.disabled = true;
+  go.addEventListener('click', submitGate);
+  box.appendChild(go);
+  slot.appendChild(box);
+
+  // If the content is short the scroll event never fires — a body that needs
+  // no scrolling counts as scrolled the moment it is on screen.
+  if (body.scrollHeight <= body.clientHeight + 4) GATE.scrolled = true;
+  refreshGate();
+  setInterval(refreshGate, 1000);
+}
+
+function secondsOnScreen() { return Math.floor((Date.now() - GATE.openedMs) / 1000); }
+
+function refreshGate() {
+  if (GATE.unlocked) return;
+  const need = [];
+  if (!GATE.scrolled) need.push('scroll to the bottom');
+  if (!GATE.checked) need.push('tick the box');
+  const required = GATE.requiredSeconds || 10;
+  const left = required - secondsOnScreen();
+  if (left > 0) need.push('read for ' + left + 's more');
+  const status = $('gate-status');
+  if (status) status.textContent = need.length ? 'Still needed: ' + need.join(' · ') : 'Ready — press GO.';
+  const go = $('gobtn');
+  if (go) {
+    const ready = need.length === 0;
+    go.disabled = !ready;
+    go.className = ready ? 'ready' : '';
+  }
+}
+
+async function submitGate() {
+  const go = $('gobtn');
+  go.disabled = true;
+  try {
+    const res = await api('/api/crew/briefing/ack', {
+      method: 'POST',
+      body: {
+        crewMemberId: CREW_ID,
+        content: GATE.content,
+        state: { scrolledToBottom: GATE.scrolled, checkboxTicked: GATE.checked, secondsOnScreen: secondsOnScreen() },
+        startedAtIso: GATE.startedAt,
+        completedAtIso: new Date().toISOString(),
+      },
+    });
+    if (!res.unlocked) {
+      // The server is the authority — if it says not yet, the day stays locked.
+      GATE.requiredSeconds = res.requiredSeconds || 10;
+      $('gate-status').textContent = 'Still needed: ' + (res.missing || []).join(' · ');
+      refreshGate();
+      return;
+    }
+    GATE.unlocked = true;
+    $('gate').className = 'unlocked';
+    document.querySelector('.gate-head').textContent = 'Briefing acknowledged — logged';
+    go.textContent = 'DAY UNLOCKED ✓';
+    go.className = 'done';
+    renderQuiz();
+    renderWork();
+  } catch (e) {
+    go.disabled = false;
+    // Name the real reason instead of a generic retry (§1B: never bluff).
+    $('gate-status').textContent = e.code === 400
+      ? 'That sign-off was rejected — check your crew code with the office.'
+      : e.code === 503
+        ? 'Cannot reach the office right now. Your day is not blocked — call it in.'
+        : 'Could not record that — try once more.';
+  }
+}
+
+// ---- Clock-in question (§6M/§4.6). One item, drawn from the topics this
+// crew member is weakest on. The answer key never reaches this phone: the
+// server grades and tells us what the score was.
+const QUIZ = { startedAt: null, items: [], answers: {}, done: false, context: 'clock_in_gate' };
+
+/** Friday in Hampton Roads, not in whatever zone this phone thinks it is. */
+function isFridayEt() {
+  return new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', weekday: 'short' })
+    .format(new Date()) === 'Fri';
+}
+
+const QUIZ_TITLE = {
+  clock_in_gate: 'Question before you roll',
+  friday_questionnaire: "Friday check \u2014 this week's questions",
+};
+
+async function renderQuiz(context) {
+  const ctx = context || (isFridayEt() ? 'friday_questionnaire' : 'clock_in_gate');
+  const v = $('quiz');
+  v.replaceChildren();
+  if (!GATE.unlocked || QUIZ.done) return;
+  let q;
+  try {
+    q = await api('/api/crew/quiz?context=' + ctx + '&crewMemberId=' + encodeURIComponent(CREW_ID));
+  } catch (e) {
+    // Never let a broken quiz silently skip the gate — say what happened.
+    v.appendChild(el('div', 'state', e.code === 503
+      ? 'Cannot reach the office for today\'s questions. Not your fault \u2014 carry on.'
+      : 'Today\'s questions did not load. Tell the office; do not skip it quietly.'));
+    return;
+  }
+  if (!q.itemsLoaded) {
+    v.appendChild(el('div', 'state', 'Today\'s questions could not be loaded. This is not "no questions" \u2014 tell the office.'));
+    return;
+  }
+  if (!q.items.length) return;
+
+  QUIZ.startedAt = new Date().toISOString();
+  QUIZ.items = q.items;
+  QUIZ.answers = {};
+  QUIZ.context = ctx;
+
+  v.appendChild(el('div', 'panel-title', QUIZ_TITLE[ctx] || 'Questions'));
+  v.appendChild(el('div', 'paynote', 'This is paid time \u2014 it is on the clock.'));
+
+  // §1B: a short pool must not be dressed up as a full questionnaire.
+  if (q.shortfall > 0) {
+    v.appendChild(el('div', 'shortfall',
+      'Only ' + q.items.length + ' question(s) available \u2014 the office has not published enough yet. This is not a short week.'));
+  }
+
+  const progress = el('div', 'qprogress');
+  v.appendChild(progress);
+  const answerable = q.items.filter((i) => !i.readOnly).length;
+  const updateProgress = () => {
+    const done = Object.keys(QUIZ.answers).length;
+    progress.textContent = answerable ? done + ' of ' + answerable + ' answered' : 'Nothing to answer \u2014 read and submit.';
+    const go = $('quiz-go');
+    if (go) go.disabled = done < answerable;
+  };
+
+  q.items.forEach((item, n) => {
+    const card = el('div', 'card');
+    card.appendChild(el('div', 'qtopic', (q.items.length > 1 ? (n + 1) + '. ' : '') + item.topic));
+    card.appendChild(el('div', 'qprompt', item.prompt));
+    if (item.readOnly) {
+      card.appendChild(el('div', 'scope', 'Read this one \u2014 there is nothing to answer.'));
+    } else {
+      item.options.forEach((opt, idx) => {
+        const b = el('button', 'qopt', opt);
+        b.addEventListener('click', () => {
+          QUIZ.answers[item.id] = idx;
+          [...card.querySelectorAll('.qopt')].forEach((x) => x.classList.remove('picked'));
+          b.classList.add('picked');
+          updateProgress();
+        });
+        card.appendChild(b);
+      });
+    }
+    v.appendChild(card);
+  });
+
+  const go = el('button', 'gate-go', 'Submit');
+  go.id = 'quiz-go';
+  go.addEventListener('click', submitQuiz);
+  v.appendChild(go);
+  v.appendChild(el('div', 'errline', ''));
+  updateProgress();
+}
+
+async function submitQuiz() {
+  const go = $('quiz-go');
+  go.disabled = true;
+  let res;
+  try {
+    res = await api('/api/crew/quiz/complete', {
+      method: 'POST',
+      body: {
+        crewMemberId: CREW_ID,
+        context: QUIZ.context,
+        itemIds: QUIZ.items.map((i) => i.id),
+        answers: QUIZ.answers,
+        startedAtIso: QUIZ.startedAt,
+        completedAtIso: new Date().toISOString(),
+      },
+    });
+  } catch (e) {
+    go.disabled = false;
+    $('quiz').querySelector('.errline').textContent = e.code === 400
+      ? 'That did not save \u2014 check your crew code with the office.'
+      : 'Could not record that \u2014 try once more.';
+    return;
+  }
+  QUIZ.done = true;
+  const v = $('quiz');
+  v.replaceChildren();
+  v.appendChild(el('div', 'panel-title', 'Logged'));
+  const box = el('div', 'card');
+  // Show the pay. §4.6 is only real to a crew member if they can see it.
+  box.appendChild(el('div', 'qprompt', res.payableMinutes + ' min paid \u2014 on the clock.'));
+  if (res.gradedOk === false) {
+    box.appendChild(el('div', 'scope', 'Your answers were recorded, but Arbo could not score them right now.'));
+  } else if (res.score !== null && res.score !== undefined) {
+    box.appendChild(el('div', 'scope', res.correct + ' of ' + res.answered + ' correct.'));
+  }
+  if (res.duplicate) box.appendChild(el('div', 'scope', 'Already recorded earlier \u2014 not counted twice.'));
+  v.appendChild(box);
+}
+
+// ---- Work orders (§6F). Rendered ONLY after the gate passes.
+async function renderWork() {
+  const v = $('work');
+  v.replaceChildren();
+  if (!GATE.unlocked) {
+    v.appendChild(el('div', 'locked-note', 'Your work orders unlock after the safety briefing.'));
+    return;
+  }
+  v.appendChild(el('div', 'panel-title', "Today's work orders"));
+  let data;
+  try {
+    data = await api('/api/crew/workorders');
+  } catch (e) {
+    v.appendChild(el('div', 'state', 'Could not load your work orders. Pull to refresh.'));
+    return;
+  }
+  if (!data.workOrders.length) {
+    const s = el('div', 'state');
+    s.appendChild(el('b', '', 'Nothing scheduled'));
+    s.appendChild(document.createTextNode('Check with the office.'));
+    v.appendChild(s);
+    return;
+  }
+  for (const wo of data.workOrders) {
+    const c = el('div', 'wo');
+    const top = el('div', 'top');
+    const left = el('div');
+    left.appendChild(el('span', 'num', String(wo.routeOrder)));
+    top.appendChild(left);
+    top.appendChild(el('div', 'when', fmtTime(wo.timeIso)));
+    c.appendChild(top);
+    const addr = el('div', 'addr');
+    const a = el('a', '', wo.address + (wo.city ? ', ' + wo.city : ''));
+    a.href = 'https://maps.google.com/?q=' + encodeURIComponent(wo.address + ', ' + wo.city + ', VA');
+    a.target = '_blank'; a.rel = 'noopener';
+    addr.appendChild(a);
+    c.appendChild(addr);
+    if (wo.scope) c.appendChild(el('div', 'scope', wo.scope));
+    for (const h of wo.hazards || []) {
+      c.appendChild(el('div', 'hz' + (h.indexOf('POWER') === 0 ? ' power' : ''), '⚠ ' + h));
+    }
+    if (wo.permitNote) c.appendChild(el('div', 'permit', wo.permitNote));
+    if (wo.requiresBeforeAfterPhotos) {
+      c.appendChild(el('div', 'photos', '\ud83d\udcf7 Before + after photos required to close this job'));
+    }
+    // §6 arrival record + change order. On the job card, because that is where
+    // the crew is standing when both things need doing.
+    c.appendChild(arrivalButton(wo.jobId));
+    c.appendChild(changeOrderButton(wo.jobId));
+    v.appendChild(c);
+  }
+}
+
+// ---- Arrival record (§6). The defence against "your crew did that". The
+// response tells the crew how strong the record is while they can still fix it.
+function arrivalButton(jobId) {
+  const wrap = el('div', 'jobaction');
+  const btn = el('button', 'jobbtn', '\ud83d\udcf7 Log arrival condition');
+  const out = el('div', 'jobout');
+  btn.addEventListener('click', async () => {
+    const notes = prompt('What did the site look like on arrival? Anything already damaged?');
+    if (notes === null) return;
+    btn.disabled = true;
+    try {
+      const res = await api('/api/crew/arrival', {
+        method: 'POST',
+        body: {
+          jobId,
+          arrivalIso: new Date().toISOString(),
+          // Photo refs come from the photo flow; an empty list is honest here
+          // and the server will say the record is weak because of it.
+          photoFiles: [],
+          preexistingNotes: notes.trim(),
+          documentedBy: CREW_ID,
+        },
+      });
+      out.replaceChildren();
+      btn.textContent = 'Arrival logged';
+      btn.className = 'jobbtn done';
+      // The gaps matter more than the confirmation — show them first.
+      for (const line of res.lines || []) out.appendChild(el('div', 'gapline', '\u26a0 ' + line));
+      if (res.defensible) out.appendChild(el('div', 'okline', 'Photos on file \u2014 this record can back you up.'));
+    } catch {
+      btn.disabled = false;
+      out.textContent = 'Could not log that. Try again.';
+    }
+  });
+  wrap.appendChild(btn);
+  wrap.appendChild(out);
+  return wrap;
+}
+
+// ---- Change order (§3/§4.5). The crew records what the CUSTOMER agreed to.
+// Arbo never fills in the number and never records assent with nobody named.
+function changeOrderButton(jobId) {
+  const wrap = el('div', 'jobaction');
+  const btn = el('button', 'jobbtn', '+ Extra work agreed');
+  const out = el('div', 'jobout');
+  btn.addEventListener('click', async () => {
+    const description = prompt('What extra work did the customer agree to?');
+    if (description === null || !description.trim()) return;
+    const agreedBy = prompt('Who agreed to it? (name)');
+    if (agreedBy === null) return;
+    btn.disabled = true;
+    out.replaceChildren();
+    try {
+      // The crew records THAT it was agreed and WHO agreed. No figures on this
+      // surface at all (§8C): the office fills the number in and approves.
+      await api('/api/crew/change-order', {
+        method: 'POST',
+        body: {
+          jobId,
+          description: description.trim(),
+          agreedBy: agreedBy.trim(),
+          agreedAtIso: new Date().toISOString(),
+        },
+      });
+      btn.textContent = 'Recorded \u2014 office will confirm';
+      btn.className = 'jobbtn done';
+      out.appendChild(el('div', 'okline', 'Logged for the office to confirm before it goes on the bill.'));
+    } catch (e) {
+      btn.disabled = false;
+      out.textContent = e.message === 'no_agreed_by'
+        ? 'Needs the name of whoever agreed to it.'
+        : 'Could not record that. Try again.';
+    }
+  });
+  wrap.appendChild(btn);
+  wrap.appendChild(out);
+  return wrap;
+}
+
+// ---- Reference library (§6U). "How do I do X", answered under the tree.
+// OUTSIDE the briefing gate on purpose: the moment somebody needs to look a
+// technique up is the moment they are already standing at the trunk.
+//
+// Two laws render here rather than living in a doc:
+//   §6U.3 Arbo cites the clause, never the standard's text. What comes back is
+//         a pointer plus "verify on site" — never something to work from.
+//   §1B   A technique with no recorded limits is shown as INCOMPLETE, and a
+//         library Arbo cannot read is NEVER drawn as an empty one.
+function renderLibrary() {
+  const box = $('library');
+  box.replaceChildren();
+  box.appendChild(el('div', 'panel-title', 'How do I…'));
+  const card = el('div');
+  card.id = 'lib-card';
+  card.appendChild(el('div', 'why',
+    'Look up a technique. Arbo gives you the method and the clause to check — '
+    + 'it never reprints the standard, so the book on the truck is still the book.'));
+  const input = document.createElement('input');
+  input.id = 'lib-q';
+  input.placeholder = 'e.g. rigging a heavy limb';
+  input.autocomplete = 'off';
+  card.appendChild(input);
+  const btn = el('button', '', 'Look it up');
+  btn.id = 'lib-go';
+  card.appendChild(btn);
+  const out = el('div');
+  out.id = 'lib-out';
+  card.appendChild(out);
+  box.appendChild(card);
+
+  const run = () => libSearch(input.value.trim(), out, btn);
+  btn.addEventListener('click', run);
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') run(); });
+}
+
+async function libSearch(q, out, btn) {
+  out.replaceChildren();
+  btn.disabled = true;
+  let res;
+  try {
+    res = await api('/api/crew/reference?q=' + encodeURIComponent(q)
+      + '&crewMemberId=' + encodeURIComponent(CREW_ID));
+  } catch (e) {
+    // §1B: a library Arbo could not read is not an empty library. Say which
+    // one this is, so nobody concludes there is no guidance on file.
+    out.appendChild(el('div', 'lib-warn', e.code === 503
+      ? 'Library unavailable right now. That is NOT "nothing on file" — ask the office.'
+      : 'Could not search the library. That is NOT "nothing on file" — ask the office.'));
+    btn.disabled = false;
+    return;
+  }
+  btn.disabled = false;
+  const entries = res.entries || [];
+
+  // Everything Arbo could not do goes ABOVE the answers, never underneath.
+  if (res.queryTooShort) {
+    out.appendChild(el('div', 'lib-warn',
+      'Those words were too short to search on — this is the whole library, not matches. Try a longer word.'));
+  }
+  if (res.unpublishedHeld > 0) {
+    out.appendChild(el('div', 'lib-note',
+      res.unpublishedHeld + ' more entr' + (res.unpublishedHeld === 1 ? 'y is' : 'ies are')
+      + ' written but not yet signed off by a person, so they are held back. Ask the office if you need one.'));
+  }
+  if (res.refsDropped > 0) {
+    out.appendChild(el('div', 'lib-note',
+      res.refsDropped + ' reference(s) were withheld for not being a clause citation. Check the book on site.'));
+  }
+  if (res.skillKnown === false) {
+    out.appendChild(el('div', 'lib-note',
+      'Arbo could not read your signed-off level, so nothing below is flagged as above it. That is not a sign-off.'));
+  }
+
+  if (!entries.length) {
+    // "Your words did not match" is an ordinary outcome. "There is nothing in
+    // here at all" is a hole in the library, and reads as the louder one.
+    out.appendChild(res.noMatch
+      ? el('div', 'lib-note', 'Nothing published matches that. Try a different word — and tell the office what you were after.')
+      : el('div', 'lib-warn', 'Nothing is published in the library yet. Ask somebody; do not work it out on the tree.'));
+    return;
+  }
+
+  for (const e of entries) out.appendChild(libEntry(e));
+}
+
+function libEntry(e) {
+  const c = el('div', 'lib-entry');
+  c.appendChild(el('div', 'lib-name', e.techniqueName));
+  if (e.aboveSkillLevel) {
+    c.appendChild(el('div', 'lib-above',
+      '⚠ Above your signed-off level — read it, but do not run it until the office signs you off.'));
+  }
+  c.appendChild(el('div', 'lib-how', e.howTo));
+
+  if ((e.pros || []).length) {
+    c.appendChild(el('div', 'lib-sub', 'Good for'));
+    for (const p of e.pros) c.appendChild(el('div', 'lib-li', '• ' + p));
+  }
+  if ((e.cons || []).length) {
+    c.appendChild(el('div', 'lib-sub', 'Downsides'));
+    for (const p of e.cons) c.appendChild(el('div', 'lib-li', '• ' + p));
+  }
+
+  // The limits are the point of the entry, so they render loudest — and their
+  // ABSENCE renders just as loudly (§1B). A blank here is a gap, not a green light.
+  if (e.wontWorkWhen) {
+    c.appendChild(el('div', 'lib-limits', 'When this does NOT work: ' + e.wontWorkWhen));
+  } else if (e.limitsWarning) {
+    c.appendChild(el('div', 'lib-limits', '⚠ ' + e.limitsWarning));
+  }
+
+  if ((e.standardRefs || []).length) {
+    c.appendChild(el('div', 'lib-clause', 'Per ' + e.standardRefs.join(' · ') + ' — verify on site.'));
+  }
+  // Only ever an http(s) link. textContent makes the rest of this page
+  // XSS-safe by construction, but an href is the one place a stored
+  // 'javascript:' string would still run — so it is filtered, not trusted.
+  if (e.sourceLink && /^https?:\/\//i.test(e.sourceLink)) {
+    const a = el('a', 'lib-src', 'Open the source →');
+    a.href = e.sourceLink;
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+    c.appendChild(a);
+  } else if (e.sourceLink) {
+    // Not silently dropped: a source Arbo will not open is still a source.
+    c.appendChild(el('div', 'lib-note', 'A source is on file but not a link Arbo will open — ask the office for it.'));
+  }
+  return c;
+}
+
+// ---- Near-miss filing (§6V). Deliberately OUTSIDE the briefing gate: a
+// near miss must be reportable at any moment, including before the day has
+// started. Nothing here records blame, because nothing anywhere in Arbo does.
+function renderNearMiss() {
+  const box = $('nearmiss');
+  box.replaceChildren();
+  box.appendChild(el('div', 'panel-title', 'Report a near miss'));
+  const card = el('div');
+  card.id = 'nm-card';
+  card.appendChild(el('div', 'why',
+    'Something almost went wrong? Say it here. No names, no blame, no write-up — '
+    + 'this goes straight into training so the next crew does not meet it.'));
+  const ta = el('textarea');
+  ta.id = 'nm-desc';
+  ta.placeholder = 'What almost happened?';
+  card.appendChild(ta);
+  const btn = el('button', '', 'File it');
+  btn.id = 'nm-go';
+  card.appendChild(btn);
+  const out = el('div');
+  out.id = 'nm-out';
+  card.appendChild(out);
+  box.appendChild(card);
+
+  btn.addEventListener('click', async () => {
+    const description = ta.value.trim();
+    out.className = '';
+    out.textContent = '';
+    if (!description) {
+      out.className = 'err';
+      out.textContent = 'Type what almost happened — even a few words.';
+      return;
+    }
+    if (!CREW_ID) {
+      out.className = 'err';
+      out.textContent = 'Tell the app who is on this phone first, up at the top.';
+      return;
+    }
+    btn.disabled = true;
+    try {
+      const res = await api('/api/crew/near-miss', {
+        method: 'POST',
+        body: { reportedBy: CREW_ID, description },
+      });
+      ta.value = '';
+      out.className = 'ok';
+      out.textContent = 'Filed. Thank you — that is how nobody gets hurt next time.'
+        + (res.hazardCategory && res.hazardCategory !== 'uncategorised'
+          ? ' Logged under: ' + res.hazardCategory.replace(/_/g, ' ') + '.'
+          : '');
+    } catch (e) {
+      // Never swallow it: a report the crew THINKS they filed is worse than
+      // one they know failed.
+      out.className = 'err';
+      out.textContent = 'Did not save (' + (e.message || 'error') + '). Tell the office directly.';
+    } finally {
+      btn.disabled = false;
+    }
+  });
+}
+
+// ---- Identity. The acknowledgment IS the OSHA record, so it must name a
+// real person: without an identity this page asks rather than filing an
+// anonymous sign-off. (Replaced by the §8C Supabase login when that lands.)
+function renderWhoAmI() {
+  const box = $('whoami');
+  box.replaceChildren();
+  if (CREW_ID) {
+    const row = el('div', 'signed');
+    row.appendChild(el('span', '', 'Signed in \u00b7 ' + CREW_ID.slice(0, 8)));
+    const out = el('button', '', 'Not you?');
+    out.addEventListener('click', () => {
+      localStorage.removeItem('arboCrewId');
+      CREW_ID = '';
+      location.reload();
+    });
+    row.appendChild(out);
+    box.appendChild(row);
+    return true;
+  }
+  const h = el('h2', '', 'Who is on this phone?');
+  const p = el('p', '', 'Your briefing sign-off is a safety record — it has to have your name on it. Enter the crew code the office gave you.');
+  const input = document.createElement('input');
+  input.id = 'crewcode';
+  input.placeholder = 'Crew code';
+  input.autocomplete = 'off';
+  const go = el('button', '', 'Start my day');
+  const err = el('div', 'errline', '');
+  go.addEventListener('click', () => {
+    const v = input.value.trim();
+    if (!v) { err.textContent = 'Enter the code from the office.'; return; }
+    localStorage.setItem('arboCrewId', v);
+    location.reload();
+  });
+  input.addEventListener('keydown', (e) => { if (e.key === 'Enter') go.click(); });
+  box.appendChild(h); box.appendChild(p); box.appendChild(input); box.appendChild(go); box.appendChild(err);
+  return false;
+}
+
+$('dateline').textContent = new Date().toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+if (renderWhoAmI()) {
+  renderWork();
+  renderLibrary();
+  renderNearMiss();
+  api('/api/crew/briefing').then(renderGate).catch(() => {
+    $('gate-slot').appendChild(el('div', 'state', 'No briefing published for today yet — check with the office.'));
+  });
+}
+</script>
+</body>
+</html>
