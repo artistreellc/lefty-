@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en" data-theme="cockpit">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arbo MCP skin</title>
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="skin.css">
+</head>
+<body>
+<!--
+  Arbo MCP — skin template.
+  Every Arbo MCP screen starts from this file: copy the shell, keep the
+  components, change only the content. All data below is SIMULATED.
+  Offline by design: nothing here loads from outside this folder.
+-->
+<div class="app">
+
+  <header class="topbar">
+    <svg class="mark" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 22v-6"/><path d="M12 16l-4-4"/><path d="M12 13l3-3"/>
+      <circle cx="12" cy="8" r="6"/>
+    </svg>
+    <h1>Arbo MCP</h1>
+    <span class="spacer"></span>
+    <span class="chip chip-info"><span class="dot"></span>Test setup</span>
+    <button class="btn btn-secondary theme-toggle" type="button" id="theme">Sunlight</button>
+  </header>
+
+  <main class="content">
+
+    <p class="rule">Banners are full width and can't be dismissed. The 911 line always comes first.</p>
+
+    <!-- 1. Emergency: always first, above everything -->
+    <div class="banner banner-emergency" role="alert">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3l10 18H2z"/><path d="M12 10v5"/><path d="M12 18h.01"/></svg>
+      <span>Anyone hurt or near a downed line? Call 911 now. Stay away from the line.</span>
+    </div>
+
+    <!-- 2. Safe mode / paused: Jack's required wording, word for word -->
+    <div class="banner banner-paused" role="status">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
+      <span>Arbo paused, hand work allowed, fixed limits still apply (power-line distance, aloft rules), log it afterward.</span>
+    </div>
+
+    <!-- 3. Dig block: the answer is never softer than this -->
+    <div class="banner banner-block" role="status">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M6 6l12 12"/></svg>
+      <span>Can't confirm, don't dig.<br><span class="meta">VA811 status: pending (SIM-JOB-0042). Every utility must respond first.</span></span>
+    </div>
+
+    <!-- 4. Can't-confirm state: a dead feed is named, never shown as zero -->
+    <div class="banner banner-unknown" role="status">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg>
+      <span>Storm status can't be confirmed. The declaration source isn't answering.</span>
+    </div>
+
+    <h2 class="section-title">Waiting on you</h2>
+
+    <!-- 5. Deploy request: mirrors the deploy tool -->
+    <article class="card">
+      <h3>Deploy request</h3>
+      <p class="meta">Test setup. Nothing will be deployed, whatever you answer.</p>
+      <dl class="kv">
+        <dt>Target</dt><dd>SIM-bundle-0007</dd>
+        <dt>Reason</dt><dd>SIMULATED: fix to the call summary wording</dd>
+      </dl>
+      <p>No answer in <span class="countdown num">1:58</span> counts as <strong>no</strong>.</p>
+      <div class="actions">
+        <button class="btn btn-secondary" type="button">No</button>
+        <button class="btn btn-primary" type="button">Yes</button>
+      </div>
+    </article>
+
+    <!-- 6. Ordinary approval -->
+    <article class="card">
+      <h3>Text to SIM-Customer-A</h3>
+      <p>"Hi, this is Arbo, SIM Tree Co's AI assistant. The owner can stop by for a free estimate. Which afternoon works for you?"</p>
+      <p class="meta">Nothing sends without your tap. No answer sends nothing.</p>
+      <div class="actions">
+        <button class="btn btn-secondary" type="button">Decline</button>
+        <button class="btn btn-primary" type="button">Approve</button>
+      </div>
+    </article>
+
+    <!-- 7. Safety change: its own card, Jack's review first, never batched -->
+    <article class="card safety-change">
+      <span class="chip chip-warning"><span class="dot"></span>Safety change: can't be batch-approved</span>
+      <h3>Jack's review</h3>
+      <p><strong>Blocked:</strong> SIMULATED: shortens the aloft stale timeout check. Needs your fresh two-step check.</p>
+      <h3>The change</h3>
+      <p class="meta">SIM proposal 0003. Risk review: separate Claude Code session (SIM).</p>
+      <div class="actions">
+        <button class="btn btn-secondary" type="button">Decline</button>
+        <button class="btn btn-primary" type="button">Override: needs two-step check</button>
+      </div>
+    </article>
+
+    <h2 class="section-title">Today</h2>
+
+    <!-- 8. Job card with permit label and aloft state -->
+    <article class="card">
+      <h3>SIM-JOB-0042 · 101 Simulation Row</h3>
+      <div>
+        <span class="chip chip-warning"><span class="dot"></span>L7 REVIEW NEEDED</span>
+      </div>
+      <p class="meta">Last verified <time>2026-09-20</time> (SIM snapshot). <span class="badge-note">Approximate, from city records. Not a survey.</span></p>
+      <p class="meta">Aloft state</p>
+      <div class="aloft" role="group" aria-label="Aloft state">
+        <span>On the ground</span>
+        <span>Aloft</span>
+        <span aria-current="true">Unknown: counts as aloft</span>
+      </div>
+    </article>
+
+    <!-- 9. Flags: listed, never counted, never "none" -->
+    <article class="card">
+      <h3>Site flags</h3>
+      <p>Utility pedestal seen near the back fence (SIM). Ground contact set to yes.</p>
+      <p class="rule">Flags are listed, never counted. No screen ever shows a zero-flags or all-good state.</p>
+    </article>
+
+  </main>
+
+  <nav class="tabbar" aria-label="Main">
+    <button type="button" aria-current="page">Today</button>
+    <button type="button">Approvals</button>
+    <button type="button">Crew</button>
+    <button type="button">Safety</button>
+  </nav>
+</div>
+
+<script>
+  // Theme switch only. No network, no storage.
+  (function () {
+    var root = document.documentElement;
+    var btn = document.getElementById('theme');
+    btn.addEventListener('click', function () {
+      var sun = root.getAttribute('data-theme') !== 'sunlight';
+      root.setAttribute('data-theme', sun ? 'sunlight' : 'cockpit');
+      btn.textContent = sun ? 'Cockpit' : 'Sunlight';
+    });
+  })();
+</script>
+</body>
+</html>

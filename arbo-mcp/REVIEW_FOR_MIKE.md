@@ -1,4 +1,4 @@
-# For Mike: stricter choices, conflicts and questions
+# Arbo MCP. For Mike: stricter choices, conflicts and questions
 
 Nothing in this list is decided in code beyond what's described. Each item
 says whether the stricter reading is for **safety**, **privacy** or **money**.
@@ -72,13 +72,38 @@ says whether the stricter reading is for **safety**, **privacy** or **money**.
     only** (the three-tool test server). Nothing else from the brief has been
     started.
 
-## E. Not checked (outside this build)
+## E. Links and the domain
 
-17. I don't have *Arbo_Build_Brief_v2.md*, Jack's fact-checks or Research's
+18. **Cut off from all links.** Checked Sep 26, 2026:
+    - Nothing in Arbo MCP points outside its own folder (tested).
+    - No Vercel project is connected to the `lefty-` repo.
+    - None of the four Railway projects deploys from it. Three were created
+      today before this session and aren't Arbo MCP's:
+      - `serene-encouragement`: a MySQL service, plus an environment named
+        "Arbo grok ".
+      - `abundant-joy`: the `tet` service, plus an environment named
+        "Arbo 2.2".
+      - `helpful-wholeness`: the `art-is-tree` service.
+
+      **They were left untouched. Tell me if any of them should be removed.**
+    - The repo itself is on GitHub (your decision, item 10). The Claude
+      GitHub app used by this session can read and write it.
+19. **Domain: nothing bought.** Every name checked was available on Sep 26,
+    2026 (first-year price / renewal, from Vercel): `arbomcp.com`
+    $11.25/$11.25, `arbomcp.app` $9.99/$15, `arbomcp.dev` $9.99/$13,
+    `arbomcp.net` $13.50/$13.50, `arbomcp.io` $14.99/$46, `arbomcp.co`
+    $29.99/$24.80, `arbomcp.ai` $160 for 2 years, and `arbo-mcp.com`,
+    `arbo-mcp.app` and `getarbomcp.com` at the `.com`/`.app` prices. Buying
+    one spends money and puts a public name on the project. The brief says
+    Arbo isn't listed publicly (D-29). **Your call.**
+
+## F. Not checked (outside this build)
+
+20. I don't have *Arbo_Build_Brief_v2.md*, Jack's fact-checks or Research's
     files, so no legal citation, figure or vendor claim in the brief was
     checked. None of them are used by this build.
 
-## F. Review checklist results (handoff rule 5)
+## G. Review checklist results (handoff rule 5)
 
 | Check | Result |
 |---|---|
@@ -86,4 +111,4 @@ says whether the stricter reading is for **safety**, **privacy** or **money**.
 | Hard-coded web addresses | **0** in the code or data (tested). |
 | Packages | **0.** Python standard library only. |
 | Real credentials, names, addresses or phone numbers | **0.** All data is tagged `SIM` (tested). |
-| Tests | **26 of 26 pass** (`TEST_RESULTS.txt`). Three planted bugs were each caught, which shows the tests can fail. |
+| Tests | **32 of 32 pass** (`TEST_RESULTS.txt`). Four planted bugs were each caught, which shows the tests can fail: a decline treated as yes, a skipped log entry, a read tool that writes, and an outside font link in the skin. |

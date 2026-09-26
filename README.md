@@ -1,6 +1,10 @@
-# lefty-: isolated Arbo sandbox + shared MCP for Claude and Grok
+# Arbo MCP
 
-This repo is where Claude and Grok build a **sandbox version of Arbo** without
+**Project name (Mike, Sep 26, 2026): Arbo MCP.** On GitHub the repository is
+still named `lefty-`. Renaming it is done in GitHub under Settings → General →
+Repository name. The main build is **`arbo-mcp/`**.
+
+Earlier in this repo, Claude and Grok set up to build a **sandbox version of Arbo** without
 touching live Arbo, real customers or real accounts.
 
 | Path | What it is |

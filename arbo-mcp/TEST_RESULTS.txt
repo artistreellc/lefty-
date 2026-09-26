@@ -1,17 +1,17 @@
-Test run: 2026-09-26T07:20:27Z  Python 3.11.15
+Test run: 2026-09-26T07:32:47Z  Python 3.11.15
 
+test_no_links_in_code_data_or_skin (test_isolation.NoLinksAnywhere.test_no_links_in_code_data_or_skin) ... ok
+test_python_imports_only_the_standard_library_and_itself (test_isolation.NothingFromOutside.test_python_imports_only_the_standard_library_and_itself) ... ok
+test_skin_loads_only_its_own_files (test_isolation.NothingFromOutside.test_skin_loads_only_its_own_files) ... ok
+test_no_banned_phrases (test_isolation.SkinWording.test_no_banned_phrases) ... ok
+test_no_real_names_in_data_or_skin (test_isolation.SkinWording.test_no_real_names_in_data_or_skin) ... ok
+test_required_safety_wording_is_present (test_isolation.SkinWording.test_required_safety_wording_is_present) ... ok
 test_client_that_cannot_ask_mike_means_no (test_server.DeployNeedsMikesYes.test_client_that_cannot_ask_mike_means_no) ... ok
 test_deploy_code_cannot_run_programs (test_server.DeployNeedsMikesYes.test_deploy_code_cannot_run_programs) ... ok
 test_every_answer_other_than_an_explicit_yes_is_no (test_server.DeployNeedsMikesYes.test_every_answer_other_than_an_explicit_yes_is_no) ... ok
 test_explicit_yes_is_recorded_and_still_deploys_nothing (test_server.DeployNeedsMikesYes.test_explicit_yes_is_recorded_and_still_deploys_nothing) ... ok
 test_question_shows_target_reason_and_the_timeout_rule (test_server.DeployNeedsMikesYes.test_question_shows_target_reason_and_the_timeout_rule) ... ok
-test_full_session_yes_then_timeout (test_server.EndToEndOverStdio.test_full_session_yes_then_timeout) ... /home/user/arbo-mcp/tests/test_server.py:496: ResourceWarning: unclosed file <_io.TextIOWrapper name=5 encoding='utf-8'>
-  replies = self.run_session([
-ResourceWarning: Enable tracemalloc to get the object allocation traceback
-/home/user/arbo-mcp/tests/test_server.py:496: ResourceWarning: unclosed file <_io.TextIOWrapper name=7 encoding='utf-8'>
-  replies = self.run_session([
-ResourceWarning: Enable tracemalloc to get the object allocation traceback
-ok
+test_full_session_yes_then_timeout (test_server.EndToEndOverStdio.test_full_session_yes_then_timeout) ... ok
 test_the_audit_hook_really_blocks_network (test_server.EndToEndOverStdio.test_the_audit_hook_really_blocks_network) ... ok
 test_editing_deleting_or_reordering_the_log_is_detected (test_server.EveryCallIsLogged.test_editing_deleting_or_reordering_the_log_is_detected) ... ok
 test_every_request_and_tool_call_is_in_the_log_and_the_chain_verifies (test_server.EveryCallIsLogged.test_every_request_and_tool_call_is_in_the_log_and_the_chain_verifies) ... ok
@@ -34,6 +34,6 @@ test_other_requests_during_the_wait_are_answered_afterwards (test_server.Timeout
 test_silence_until_the_deadline_is_no (test_server.TimeoutCountsAsNo.test_silence_until_the_deadline_is_no) ... ok
 
 ----------------------------------------------------------------------
-Ran 26 tests in 1.763s
+Ran 32 tests in 1.808s
 
 OK

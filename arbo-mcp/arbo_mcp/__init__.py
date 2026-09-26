@@ -1,1 +1,1 @@
-"""Arbo test MCP server. Synthetic data only; deploys nothing."""
+"""Arbo MCP. Synthetic data only; deploys nothing."""

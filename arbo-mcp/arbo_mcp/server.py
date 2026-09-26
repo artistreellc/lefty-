@@ -1,4 +1,4 @@
-"""Arbo's own MCP tool server -- test setup only.
+"""Arbo MCP -- the tool server. Test setup only.
 
 Speaks MCP (JSON-RPC 2.0, one message per line) over stdin/stdout.
 Standard library only. No network code of any kind.
@@ -111,7 +111,7 @@ class Server:
         return {
             "protocolVersion": version,
             "capabilities": {"tools": {"listChanged": False}},
-            "serverInfo": {"name": "arbo-test-mcp", "version": "0.1.0"},
+            "serverInfo": {"name": "arbo-mcp", "version": "0.1.0"},
             "instructions": "Test setup only. Synthetic data. The deploy tool deploys nothing.",
         }
 

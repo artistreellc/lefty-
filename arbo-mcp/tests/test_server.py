@@ -481,6 +481,8 @@ class EndToEndOverStdio(unittest.TestCase):
             proc.stdin.close()
             proc.wait(timeout=10)
             stderr = proc.stderr.read()
+            proc.stdout.close()
+            proc.stderr.close()
         ok, problem = calllog.verify(log)
         shutil.rmtree(tmp, ignore_errors=True)
         self.assertNotIn("BLOCKED BY TEST", stderr)

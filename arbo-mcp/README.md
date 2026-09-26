@@ -1,4 +1,7 @@
-# Arbo test MCP server: first sandboxed build
+# Arbo MCP
+
+**Project name (Mike, Sep 26, 2026): Arbo MCP.** First sandboxed build: the
+test tool server, plus the app's skin template.
 
 Built by Claude Code, Sep 26, 2026, from the Grok Bot handoff (v2) and
 *Arbo_Dream_Brief.md*. **Test setup only.** Synthetic data. It deploys nothing.
@@ -43,6 +46,11 @@ server asks the MCP client to show a yes/no question to the person using it.
 - **No network code.** Tests check the imports, check for web addresses, and
   run the real server with the Python interpreter itself blocking every
   network and process-launch event.
+- **Cut off from all links** (Mike, Sep 26, 2026). There are no web
+  addresses, domain names, IP addresses or emails in the code, data or skin,
+  no import from outside the standard library, and the skin loads only its
+  own files. `tests/test_isolation.py` fails the build if any of that
+  changes.
 - **Synthetic data only.** Everything is tagged `SIM`, and tests check for
   phone numbers and email addresses.
 - Built in a fresh local folder, then placed in the `lefty-` sandbox repo on
@@ -55,7 +63,9 @@ arbo_mcp/server.py    stdio JSON-RPC loop, logging, the deploy question
 arbo_mcp/tools.py     the three tools, argument checks, yes/no rule
 arbo_mcp/calllog.py   append-only, hash-chained call log + verify()
 data/                 synthetic test data (read-only to the server)
-tests/test_server.py  26 tests
+skin/                 the app's skin template (see skin/README.md)
+tests/test_server.py  server tests
+tests/test_isolation.py  "cut off from all links" tests
 TEST_RESULTS.txt      output of the last full run
 REVIEW_FOR_MIKE.md    stricter readings chosen, conflicts, questions
 ```

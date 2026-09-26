@@ -1,0 +1,126 @@
+/* Arbo MCP — skin components. Uses only the tokens in tokens.css. */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.4;
+}
+
+.num, time { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+/* ---------- App shell ---------- */
+.app { max-width: 560px; margin: 0 auto; min-height: 100vh; display: flex; flex-direction: column; overflow-x: hidden; }
+
+.topbar {
+  position: sticky; top: 0; z-index: 10;
+  display: flex; align-items: center; gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+.topbar .mark { width: 28px; height: 28px; color: var(--accent-soft); flex: none; }
+.topbar h1 { margin: 0; font-size: var(--text-lg); font-weight: var(--weight-black); letter-spacing: 0.02em; white-space: nowrap; }
+.topbar .spacer { flex: 1; }
+
+.content { flex: 1; padding: var(--space-4); display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--space-4); align-content: start; }
+.content > *, .card > *, .banner > * { min-width: 0; overflow-wrap: anywhere; }
+
+.section-title {
+  margin: var(--space-4) 0 0;
+  font-size: var(--text-sm); font-weight: var(--weight-bold);
+  color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em;
+}
+
+.tabbar {
+  position: sticky; bottom: 0;
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  background: var(--bg); border-top: 1px solid var(--border);
+}
+.tabbar button {
+  min-height: var(--touch-comfortable);
+  background: none; border: 0; color: var(--muted);
+  font: inherit; font-size: var(--text-sm); font-weight: var(--weight-medium);
+}
+.tabbar button[aria-current="page"] { color: var(--accent-soft); box-shadow: inset 0 3px 0 var(--accent); }
+
+/* ---------- Cards ---------- */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  box-shadow: var(--shadow-card);
+  display: grid; gap: var(--space-3);
+}
+.card h3 { margin: 0; font-size: var(--text-lg); }
+.card p { margin: 0; }
+.card .meta { color: var(--muted); font-size: var(--text-sm); }
+.card.safety-change { border: 2px solid var(--warning); }
+
+.kv { display: grid; grid-template-columns: auto 1fr; gap: var(--space-1) var(--space-3); margin: 0; }
+.kv dt { color: var(--muted); }
+.kv dd { margin: 0; font-weight: var(--weight-medium); }
+
+/* ---------- Buttons ---------- */
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }
+.btn {
+  min-height: var(--touch-comfortable);
+  padding: 0 var(--space-5);
+  border-radius: var(--radius-md);
+  border: 2px solid transparent;
+  font: inherit; font-size: var(--text-lg); font-weight: var(--weight-bold);
+  cursor: pointer;
+}
+.btn-primary { background: var(--accent); color: var(--on-accent); }
+.btn-primary:active { background: var(--accent-pressed); }
+.btn-secondary { background: transparent; color: var(--ink); border-color: var(--border); }
+.btn:focus-visible, .tabbar button:focus-visible { outline: 3px solid var(--info); outline-offset: 2px; }
+
+/* ---------- Banners (always full width, never dismissable) ---------- */
+.banner {
+  display: grid; grid-template-columns: auto 1fr; gap: var(--space-3); align-items: start;
+  padding: var(--space-4);
+  border-radius: var(--radius-md);
+  font-weight: var(--weight-bold);
+}
+.banner svg { width: 24px; height: 24px; flex: none; }
+.banner-emergency { background: var(--emergency); color: var(--on-status); }
+.banner-paused { background: var(--warning); color: var(--on-status); }
+.banner-block { background: var(--surface-raised); color: var(--ink); border: 2px solid var(--emergency); }
+.banner-unknown { background: var(--surface-raised); color: var(--ink); border: 2px dashed var(--warning); }
+
+/* ---------- Chips and state ---------- */
+.chip {
+  display: inline-flex; align-items: center; gap: var(--space-2);
+  min-height: 32px; padding: 0 var(--space-3);
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm); font-weight: var(--weight-bold);
+  border: 1px solid var(--border); background: var(--surface-raised);
+  white-space: nowrap;
+}
+.chip .dot { width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
+.chip-ok { color: var(--ok); }
+.chip-warning { color: var(--warning); }
+.chip-emergency { color: var(--emergency); }
+.chip-info { color: var(--info); }
+
+.aloft { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-2); }
+.aloft span {
+  min-height: var(--touch-min); display: grid; place-items: center;
+  border-radius: var(--radius-md); border: 1px solid var(--border);
+  color: var(--muted); font-weight: var(--weight-bold); text-align: center; font-size: var(--text-sm);
+}
+.aloft span[aria-current="true"] { background: var(--warning); color: var(--on-status); border-color: var(--warning); }
+
+.badge-note { font-size: var(--text-xs); color: var(--muted); font-style: italic; }
+
+.countdown { font-size: var(--text-2xl); font-weight: var(--weight-black); }
+
+/* ---------- Gallery-only helpers ---------- */
+.theme-toggle { min-height: var(--touch-min); padding: 0 var(--space-3); font-size: var(--text-sm); }
+.rule { font-size: var(--text-xs); color: var(--muted); border-left: 3px solid var(--accent); padding-left: var(--space-3); margin: 0; }

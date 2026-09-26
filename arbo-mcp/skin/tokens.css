@@ -1,0 +1,102 @@
+/* Arbo MCP — skin tokens.
+ *
+ * Every screen in Arbo MCP takes its colors, type, spacing and sizes from
+ * this file and nowhere else, so the look never drifts.
+ *
+ * Palette: Arbo's approved "cockpit" look (dark base, luminous purple accent,
+ * mono numerals), carried over from Arbo's design tokens so Arbo MCP matches.
+ * Two themes: "cockpit" (default, dark) and "sunlight" (light, maximum
+ * contrast for direct sun). Set with <html data-theme="sunlight">.
+ *
+ * OFFLINE BY DESIGN: system fonts only. No web fonts, no CDNs, no images or
+ * anything else loaded from outside this folder.
+ */
+
+:root,
+:root[data-theme="cockpit"] {
+  /* Surfaces */
+  --bg: #0B0D10;
+  --surface: #15181D;
+  --surface-raised: #1C2026;
+  --border: #2A2F37;
+
+  /* Text */
+  --ink: #E9ECF1;
+  --muted: #98A0AC;
+
+  /* Brand accent (violet) */
+  --accent: #7C3AED;
+  --accent-pressed: #5B21B6;
+  --accent-soft: #A78BFA;
+  --on-accent: #FFFFFF;
+
+  /* Status: must read at a glance outdoors */
+  --emergency: #FF5A52;
+  --warning: #FFB020;
+  --ok: #37C98B;
+  --info: #5AA9FF;
+  --on-status: #0B0D10;
+
+  --shadow-card: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+:root[data-theme="sunlight"] {
+  --bg: #FFFFFF;
+  --surface: #F4F4F6;
+  --surface-raised: #FFFFFF;
+  --border: #1C2026;
+
+  --ink: #0B0D10;
+  --muted: #3D4450;
+
+  --accent: #5B21B6;
+  --accent-pressed: #3B0F85;
+  --accent-soft: #5B21B6;
+  --on-accent: #FFFFFF;
+
+  --emergency: #B3261E;
+  --warning: #8A5A00;
+  --ok: #146C43;
+  --info: #0B57D0;
+  --on-status: #FFFFFF;
+
+  --shadow-card: 0 0 0 2px var(--border);
+}
+
+:root {
+  /* Type: sharp sans everywhere, mono for numbers and times */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Big by default: the most important thing is the biggest */
+  --text-xs: 13px;
+  --text-sm: 15px;
+  --text-base: 17px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-2xl: 30px;
+  --text-3xl: 38px;
+
+  --weight-regular: 400;
+  --weight-medium: 600;
+  --weight-bold: 700;
+  --weight-black: 800;
+
+  /* Spacing: 4px scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+
+  /* Glove-friendly: nothing tappable smaller than 48px */
+  --touch-min: 48px;
+  --touch-comfortable: 56px;
+}
