@@ -63,7 +63,7 @@ arbo_mcp/server.py    stdio JSON-RPC loop, logging, the deploy question
 arbo_mcp/tools.py     the three tools, argument checks, yes/no rule
 arbo_mcp/calllog.py   append-only, hash-chained call log + verify()
 data/                 synthetic test data (read-only to the server)
-skin/                 the app's skin template (see skin/README.md)
+skin/                 the app's skin template: tokens, components, three example screens
 tests/test_server.py  server tests
 tests/test_isolation.py  "cut off from all links" tests
 TEST_RESULTS.txt      output of the last full run

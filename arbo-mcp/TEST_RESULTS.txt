@@ -1,4 +1,4 @@
-Test run: 2026-09-26T07:32:47Z  Python 3.11.15
+Test run: 2026-09-26T07:38:41Z  Python 3.11.15
 
 test_no_links_in_code_data_or_skin (test_isolation.NoLinksAnywhere.test_no_links_in_code_data_or_skin) ... ok
 test_python_imports_only_the_standard_library_and_itself (test_isolation.NothingFromOutside.test_python_imports_only_the_standard_library_and_itself) ... ok
@@ -34,6 +34,6 @@ test_other_requests_during_the_wait_are_answered_afterwards (test_server.Timeout
 test_silence_until_the_deadline_is_no (test_server.TimeoutCountsAsNo.test_silence_until_the_deadline_is_no) ... ok
 
 ----------------------------------------------------------------------
-Ran 32 tests in 1.808s
+Ran 32 tests in 1.851s
 
 OK

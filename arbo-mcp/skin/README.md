@@ -8,19 +8,30 @@ to see it. It needs no connection.
 |---|---|
 | `tokens.css` | The only place colors, type, spacing and sizes are defined. Two themes: **cockpit** (dark, default) and **sunlight** (light, maximum contrast). |
 | `skin.css` | The components, built only from the tokens. |
-| `template.html` | The app shell plus every component, filled with SIMULATED data. |
+| `template.html` | Three real screens built from the skin, with SIMULATED data: **Owner Today** (instrument tiles, the queue of items waiting on you, the crew's day), **Owner Approval** (deploy request with a countdown ring, safety-change card, text approval) and **Crew glove mode** (paused state, three-state aloft control, dig block, job flags, safety check). Wide screens show them side by side in phone frames. Phones show them full width. |
 
-**Look.** This is Arbo's approved cockpit palette: near-black base, violet
-accent, mono numbers. It's glove-friendly (nothing tappable under 48px),
-readable in sunlight, and usable one-handed. The most important thing on a
+**Look (v2).** This is Arbo's approved cockpit direction:
+- a near-black instrument panel with a faint grid and a violet glow;
+- layered cards, HUD-style mono labels, and big mono numbers;
+- one inline icon set (`<symbol>`s at the top of the template).
+
+It's glove-friendly: nothing tappable is under 48px, and crew controls are
+64px or more. It's readable in sunlight and usable one-handed, and it
+respects the system's reduced-motion setting. The most important thing on a
 screen is the biggest.
+
+**Building a new screen:** copy one `.app` block from `template.html`, keep
+the app bar and tab bar, and assemble the content from the existing parts
+(`alert`, `tile`, `card`, `queue`, `timeline`, `countdown`, `segmented`,
+`flags`, `chip`, `btn`). Put any ID in `<span class="id">` so it never
+splits across lines.
 
 ## Rules every screen follows (checked by `tests/test_isolation.py`)
 
 1. **Offline.** System fonts only. Nothing loads from outside this folder: no
    web fonts, CDNs, remote images, iframes, forms or network calls, and no
    browser storage.
-2. **The 911 banner is always first** and can't be dismissed.
+2. **Nothing ever sits above the 911 banner.** When it's shown, it's first on the screen, it can't be dismissed, and it has the biggest button on the screen.
 3. **Paused wording is word for word:** "Arbo paused, hand work allowed, fixed
    limits still apply (power-line distance, aloft rules), log it afterward."
 4. **A dig block always reads "Can't confirm, don't dig."** Nothing on screen

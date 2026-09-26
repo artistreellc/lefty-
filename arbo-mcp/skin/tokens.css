@@ -1,86 +1,117 @@
-/* Arbo MCP — skin tokens.
+/* Arbo MCP — skin tokens (v2).
  *
- * Every screen in Arbo MCP takes its colors, type, spacing and sizes from
- * this file and nowhere else, so the look never drifts.
+ * Every screen takes its colors, type, spacing, depth and motion from this
+ * file and nowhere else, so the look never drifts.
  *
- * Palette: Arbo's approved "cockpit" look (dark base, luminous purple accent,
- * mono numerals), carried over from Arbo's design tokens so Arbo MCP matches.
- * Two themes: "cockpit" (default, dark) and "sunlight" (light, maximum
- * contrast for direct sun). Set with <html data-theme="sunlight">.
+ * Look: Arbo's approved "cockpit" direction. Near-black instrument panel,
+ * luminous violet accent, mono numerals, sharp sans. Two themes:
+ *   cockpit  (default) dark, glowing accents
+ *   sunlight           light, maximum contrast for direct sun, no glow
+ * Set with <html data-theme="sunlight">.
  *
- * OFFLINE BY DESIGN: system fonts only. No web fonts, no CDNs, no images or
- * anything else loaded from outside this folder.
+ * OFFLINE BY DESIGN: system fonts only. Nothing loads from outside this folder.
  */
 
 :root,
 :root[data-theme="cockpit"] {
-  /* Surfaces */
-  --bg: #0B0D10;
-  --surface: #15181D;
-  --surface-raised: #1C2026;
-  --border: #2A2F37;
+  /* Surfaces, darkest to lightest */
+  --bg: #07080A;
+  --bg-glow: rgba(124, 58, 237, 0.16);
+  --grid-line: rgba(255, 255, 255, 0.025);
+  --surface-1: #0E1014;
+  --surface-2: #14171D;
+  --surface-3: #1B1F27;
+  --hairline: rgba(255, 255, 255, 0.07);
+  --hairline-strong: rgba(255, 255, 255, 0.14);
+  --highlight: rgba(255, 255, 255, 0.05);
 
   /* Text */
-  --ink: #E9ECF1;
-  --muted: #98A0AC;
+  --ink: #EEF0F4;
+  --ink-2: #B7BDC8;
+  --muted: #7D8594;
 
-  /* Brand accent (violet) */
+  /* Accent */
   --accent: #7C3AED;
-  --accent-pressed: #5B21B6;
-  --accent-soft: #A78BFA;
+  --accent-2: #9D6BFF;
+  --accent-soft: #C4B5FD;
+  --accent-wash: rgba(124, 58, 237, 0.14);
   --on-accent: #FFFFFF;
+  --glow: 0 0 0 1px rgba(157, 107, 255, 0.35), 0 8px 28px rgba(124, 58, 237, 0.35);
 
-  /* Status: must read at a glance outdoors */
-  --emergency: #FF5A52;
+  /* Status (read at a glance outdoors) */
+  --emergency: #FF4D45;
+  --emergency-wash: rgba(255, 77, 69, 0.12);
   --warning: #FFB020;
-  --ok: #37C98B;
-  --info: #5AA9FF;
+  --warning-wash: rgba(255, 176, 32, 0.12);
+  --ok: #34D399;
+  --ok-wash: rgba(52, 211, 153, 0.12);
+  --info: #60A5FA;
+  --info-wash: rgba(96, 165, 250, 0.12);
   --on-status: #0B0D10;
 
-  --shadow-card: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 2px 10px rgba(0, 0, 0, 0.5);
+  --shadow-1: 0 1px 0 var(--highlight) inset, 0 10px 30px rgba(0, 0, 0, 0.45);
+  --shadow-2: 0 1px 0 var(--highlight) inset, 0 18px 50px rgba(0, 0, 0, 0.6);
+  --frame: #1E222A;
 }
 
 :root[data-theme="sunlight"] {
-  --bg: #FFFFFF;
-  --surface: #F4F4F6;
-  --surface-raised: #FFFFFF;
-  --border: #1C2026;
+  --bg: #F3F4F7;
+  --bg-glow: transparent;
+  --grid-line: transparent;
+  --surface-1: #FFFFFF;
+  --surface-2: #FFFFFF;
+  --surface-3: #ECEEF2;
+  --hairline: #C9CDD6;
+  --hairline-strong: #0B0D10;
+  --highlight: transparent;
 
-  --ink: #0B0D10;
-  --muted: #3D4450;
+  --ink: #07080A;
+  --ink-2: #252A33;
+  --muted: #4A515E;
 
   --accent: #5B21B6;
-  --accent-pressed: #3B0F85;
-  --accent-soft: #5B21B6;
+  --accent-2: #5B21B6;
+  --accent-soft: #4C1D95;
+  --accent-wash: #EDE7FB;
   --on-accent: #FFFFFF;
+  --glow: none;
 
   --emergency: #B3261E;
-  --warning: #8A5A00;
-  --ok: #146C43;
+  --emergency-wash: #FCE8E6;
+  --warning: #8A5300;
+  --warning-wash: #FFF1D6;
+  --ok: #0F6B42;
+  --ok-wash: #DDF4E9;
   --info: #0B57D0;
+  --info-wash: #E3EDFD;
   --on-status: #FFFFFF;
 
-  --shadow-card: 0 0 0 2px var(--border);
+  --shadow-1: 0 0 0 1px var(--hairline);
+  --shadow-2: 0 0 0 2px var(--hairline-strong);
+  --frame: #0B0D10;
 }
 
 :root {
-  /* Type: sharp sans everywhere, mono for numbers and times */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
 
-  /* Big by default: the most important thing is the biggest */
+  /* Type scale: the most important thing is the biggest */
+  --text-2xs: 11px;
   --text-xs: 13px;
   --text-sm: 15px;
   --text-base: 17px;
   --text-lg: 20px;
   --text-xl: 24px;
-  --text-2xl: 30px;
-  --text-3xl: 38px;
+  --text-2xl: 32px;
+  --text-3xl: 44px;
 
   --weight-regular: 400;
-  --weight-medium: 600;
+  --weight-medium: 560;
   --weight-bold: 700;
   --weight-black: 800;
+
+  --tracking-label: 0.14em;
+  --tracking-tight: -0.02em;
 
   /* Spacing: 4px scale */
   --space-1: 4px;
@@ -90,13 +121,19 @@
   --space-5: 20px;
   --space-6: 24px;
   --space-8: 32px;
+  --space-10: 40px;
 
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 16px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 28px;
   --radius-pill: 999px;
 
-  /* Glove-friendly: nothing tappable smaller than 48px */
+  /* Glove-friendly: nothing tappable under 48px; crew screens use 64px */
   --touch-min: 48px;
   --touch-comfortable: 56px;
+  --touch-glove: 64px;
+
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --speed: 160ms;
 }

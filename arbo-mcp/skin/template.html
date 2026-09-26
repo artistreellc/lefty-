@@ -7,138 +7,327 @@
 <link rel="stylesheet" href="tokens.css">
 <link rel="stylesheet" href="skin.css">
 </head>
-<body>
+<body class="showcase">
 <!--
-  Arbo MCP — skin template.
-  Every Arbo MCP screen starts from this file: copy the shell, keep the
-  components, change only the content. All data below is SIMULATED.
+  Arbo MCP — skin template (v2).
+  Three real screens built from the skin: Owner Today, Owner Approval, Crew
+  (glove mode). New screens copy an .app block and keep its parts.
+  Every name, number and address below is SIMULATED.
   Offline by design: nothing here loads from outside this folder.
 -->
-<div class="app">
 
-  <header class="topbar">
-    <svg class="mark" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M12 22v-6"/><path d="M12 16l-4-4"/><path d="M12 13l3-3"/>
-      <circle cx="12" cy="8" r="6"/>
-    </svg>
+<!-- Icon set: drawn once, used everywhere with <use href="#i-name"> -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-tree" viewBox="0 0 24 24"><path d="M12 22v-7"/><path d="M12 15l-3.5-3"/><path d="M12 12.5l3-2.5"/><path d="M7 16a5 5 0 0 1-1.2-9.8A6 6 0 0 1 17.5 6 4.5 4.5 0 0 1 17 16z"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.8.7 2.7a2 2 0 0 1-.5 2.1L8 9.8a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.8.6 2.7.7a2 2 0 0 1 1.7 2z"/></symbol>
+  <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></symbol>
+  <symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/></symbol>
+  <symbol id="i-question" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></symbol>
+  <symbol id="i-wind" viewBox="0 0 24 24"><path d="M17.7 7.7A2.5 2.5 0 1 1 19.5 12H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></symbol>
+  <symbol id="i-shovel" viewBox="0 0 24 24"><path d="M2 22 12 12"/><path d="m14.5 4.5 5 5"/><path d="M12 12c-1.5-1.5-1.5-4 0-5.5l2.5-2 5 5-2 2.5c-1.5 1.5-4 1.5-5.5 0z"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path d="M17.5 19H9a7 7 0 1 1 6.7-9h1.8a4.5 4.5 0 1 1 0 9z"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4"/><path d="M12 16h.01"/></symbol>
+  <symbol id="i-message" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="m17 8-5-5-5 5"/><path d="M12 3v12"/></symbol>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1z"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.9"/><path d="M16 3.1a4 4 0 0 1 0 7.8"/></symbol>
+  <symbol id="i-helmet" viewBox="0 0 24 24"><path d="M2 18h20"/><path d="M4 18v-3a8 8 0 0 1 16 0v3"/><path d="M10 7V5h4v2"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><path d="M4 22v-7"/></symbol>
+  <symbol id="i-arrow-down" viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></symbol>
+  <symbol id="i-arrow-up" viewBox="0 0 24 24"><path d="M12 19V5"/><path d="m5 12 7-7 7 7"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></symbol>
+</svg>
+
+<header class="showcase-head">
+  <div>
+    <p class="hud-label">Arbo MCP · skin v2 · simulated data</p>
     <h1>Arbo MCP</h1>
-    <span class="spacer"></span>
-    <span class="chip chip-info"><span class="dot"></span>Test setup</span>
-    <button class="btn btn-secondary theme-toggle" type="button" id="theme">Sunlight</button>
-  </header>
+    <p>The look every screen is built from: a dark cockpit that stays readable in the sun, glove-sized controls, and safety wording nobody can soften.</p>
+  </div>
+  <button class="btn btn-secondary" type="button" id="theme">
+    <svg class="icon"><use href="#i-sun"/></svg><span>Sunlight theme</span>
+  </button>
+</header>
 
-  <main class="content">
+<main class="screens">
 
-    <p class="rule">Banners are full width and can't be dismissed. The 911 line always comes first.</p>
+  <!-- ============ SCREEN 1: OWNER · TODAY ============ -->
+  <section class="screen" aria-label="Owner, today">
+    <p class="hud-label">01 · Owner · Today</p>
+    <div class="phone">
+      <div class="app">
+        <div class="statusbar"><span>7:42</span><span>SIM</span></div>
+        <header class="appbar">
+          <span class="brandmark"><svg class="icon"><use href="#i-tree"/></svg></span>
+          <div class="appbar-title"><h1>Arbo MCP</h1><p>Owner · Sat <time>09-26</time></p></div>
+          <span class="sys-pill is-sim"><span class="live-dot"></span>Sim</span>
+        </header>
 
-    <!-- 1. Emergency: always first, above everything -->
-    <div class="banner banner-emergency" role="alert">
-      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 3l10 18H2z"/><path d="M12 10v5"/><path d="M12 18h.01"/></svg>
-      <span>Anyone hurt or near a downed line? Call 911 now. Stay away from the line.</span>
+        <div class="content">
+          <!-- The 911 line: nothing ever sits above it -->
+          <div class="alert banner-emergency" role="alert">
+            <span class="alert-icon"><svg class="icon icon-lg"><use href="#i-alert"/></svg></span>
+            <div>
+              <strong>Injury call on <span class="id">SIM-JOB-0042</span></strong>
+              <p>Anyone hurt or near a downed line? Call 911 now. Stay away from the line.</p>
+            </div>
+            <button class="call911" type="button"><svg class="icon"><use href="#i-phone"/></svg>Call 911</button>
+          </div>
+
+          <div class="greeting">
+            <h2>Good morning.</h2>
+            <p>Three things are waiting on you.</p>
+          </div>
+
+          <div class="instruments">
+            <div class="tile is-ok">
+              <span class="hud-label">Wind</span>
+              <span class="value">12<span class="unit">mph</span></span>
+              <span class="sub">Gusts <span class="num">21</span> · SIM feed</span>
+            </div>
+            <div class="tile is-warn">
+              <span class="hud-label">Lightning</span>
+              <span class="value">14<span class="unit">mi W</span></span>
+              <span class="sub">Closing · new climbs held</span>
+            </div>
+            <div class="tile is-warn">
+              <span class="hud-label">VA811 tickets</span>
+              <span class="value">2<span class="unit">pending</span></span>
+              <div class="meter"><span style="width:40%"></span></div>
+            </div>
+            <div class="tile is-unknown">
+              <span class="hud-label">Storm watch</span>
+              <span class="value">Can't confirm</span>
+              <span class="sub">Source not answering</span>
+            </div>
+          </div>
+
+          <div class="section-head"><h2 class="hud-label">Waiting on you</h2><span class="hud-label">3</span></div>
+          <div class="queue">
+            <button class="queue-item" type="button">
+              <span class="q-icon"><svg class="icon"><use href="#i-upload"/></svg></span>
+              <span><span class="q-title">Deploy request</span><span class="q-meta"><span class="id">SIM-bundle-0007</span> · nothing deploys</span></span>
+              <span class="q-right"><span class="chip chip-accent"><time>1:58</time></span><svg class="icon"><use href="#i-chevron"/></svg></span>
+            </button>
+            <button class="queue-item is-safety" type="button">
+              <span class="q-icon"><svg class="icon"><use href="#i-shield"/></svg></span>
+              <span><span class="q-title">Safety change</span><span class="q-meta">Blocked by Jack · own card</span></span>
+              <span class="q-right"><span class="chip chip-warning">Blocked</span><svg class="icon"><use href="#i-chevron"/></svg></span>
+            </button>
+            <button class="queue-item" type="button">
+              <span class="q-icon"><svg class="icon"><use href="#i-message"/></svg></span>
+              <span><span class="q-title">Text to <span class="id">SIM-Customer-A</span></span><span class="q-meta">No answer sends nothing</span></span>
+              <span class="q-right"><svg class="icon"><use href="#i-chevron"/></svg></span>
+            </button>
+          </div>
+
+          <div class="section-head"><h2 class="hud-label">Today · Crew <span class="id">SIM-Alpha</span></h2></div>
+          <ol class="timeline">
+            <li>
+              <time>07:30</time>
+              <div class="t-body"><div class="t-title">Tailgate brief</div><div class="t-meta"><span class="chip chip-ok"><span class="dot"></span>Done</span></div></div>
+            </li>
+            <li class="is-now">
+              <time>08:15</time>
+              <div class="t-body"><div class="t-title"><span class="id">SIM-JOB-0042</span> · Removal</div><div class="t-meta"><span class="chip chip-warning">L7 Review needed</span><span class="chip chip-warning">Aloft: unknown</span></div></div>
+            </li>
+            <li class="is-hold">
+              <time>11:00</time>
+              <div class="t-body"><div class="t-title"><span class="id">SIM-JOB-0043</span> · Stump grind</div><div class="t-meta"><span class="chip chip-emergency"><span class="dot"></span>Dig blocked</span></div></div>
+            </li>
+            <li>
+              <time>14:00</time>
+              <div class="t-body"><div class="t-title">Estimate run · <span class="id">SIM-City-B</span></div><div class="t-meta"><span class="chip chip-info">Proposed</span></div></div>
+            </li>
+          </ol>
+        </div>
+
+        <nav class="tabbar" aria-label="Main">
+          <button type="button" aria-current="page"><svg class="icon"><use href="#i-home"/></svg>Today</button>
+          <button type="button"><span class="badge">3</span><svg class="icon"><use href="#i-inbox"/></svg>Approvals</button>
+          <button type="button"><svg class="icon"><use href="#i-users"/></svg>Crew</button>
+          <button type="button"><svg class="icon"><use href="#i-shield"/></svg>Safety</button>
+        </nav>
+      </div>
     </div>
+  </section>
 
-    <!-- 2. Safe mode / paused: Jack's required wording, word for word -->
-    <div class="banner banner-paused" role="status">
-      <svg viewBox="0 0 24 24" aria-hidden="true" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>
-      <span>Arbo paused, hand work allowed, fixed limits still apply (power-line distance, aloft rules), log it afterward.</span>
+  <!-- ============ SCREEN 2: OWNER · APPROVAL ============ -->
+  <section class="screen" aria-label="Owner, approvals">
+    <p class="hud-label">02 · Owner · Approval</p>
+    <div class="phone">
+      <div class="app">
+        <div class="statusbar"><span>7:43</span><span>SIM</span></div>
+        <header class="appbar">
+          <button class="btn btn-secondary" type="button" aria-label="Back" style="min-height:40px;padding:0 10px"><svg class="icon"><use href="#i-back"/></svg></button>
+          <div class="appbar-title"><h1>Approvals</h1><p>Only you approve</p></div>
+          <span class="sys-pill is-sim"><span class="live-dot"></span>Sim</span>
+        </header>
+
+        <div class="content">
+          <article class="card is-focus">
+            <div class="card-head">
+              <div class="grow">
+                <span class="chip chip-info">Test setup</span>
+                <h3>Deploy <span class="id">SIM-bundle-0007</span>?</h3>
+                <p class="lede">Nothing will be deployed, whatever you answer. Your answer is recorded.</p>
+              </div>
+            </div>
+            <dl class="kv">
+              <dt>Target</dt><dd><span class="id">SIM-bundle-0007</span></dd>
+              <dt>Reason</dt><dd>SIMULATED: fix to the call summary wording</dd>
+              <dt>From</dt><dd>Opus (SIM), reviewed separately</dd>
+              <dt>Print</dt><dd class="num">9f3a·71c0·c21e</dd>
+            </dl>
+            <div class="countdown">
+              <div class="ring">
+                <svg viewBox="0 0 88 88" aria-hidden="true"><circle class="track" cx="44" cy="44" r="38"/><circle class="fill" cx="44" cy="44" r="38" stroke-dasharray="238.8" stroke-dashoffset="4"/></svg>
+                <span class="time">1:58</span>
+              </div>
+              <div><strong>No answer counts as no.</strong><span class="small muted">Silence is never a yes.</span></div>
+            </div>
+            <div class="actions">
+              <button class="btn btn-secondary" type="button">No</button>
+              <button class="btn btn-primary" type="button"><svg class="icon"><use href="#i-check"/></svg>Yes</button>
+            </div>
+          </article>
+
+          <article class="card is-safety">
+            <div class="chip-row"><span class="chip chip-warning"><span class="dot"></span>Safety change</span><span class="chip chip-warning">No batch</span></div>
+            <h3>Shorten the aloft stale timeout</h3>
+            <div class="review is-block">
+              <span class="hud-label">Jack's review</span>
+              <p><strong>Blocked.</strong> SIMULATED: touches the aloft hold. Needs your fresh two-step check.</p>
+            </div>
+            <div class="review">
+              <span class="hud-label">Risk review</span>
+              <p>Separate Claude Code session (SIM). Proposal print <span class="num">44be·0d19</span>.</p>
+            </div>
+            <div class="actions">
+              <button class="btn btn-secondary" type="button">Decline</button>
+              <button class="btn btn-warning" type="button"><span class="btn-label">Override<span class="btn-sub">Two-step check</span></span></button>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-head">
+              <div class="grow"><span class="hud-label">Text · <span class="id">SIM-Customer-A</span></span><h3>Offer a free estimate</h3></div>
+            </div>
+            <p class="quote">"Hi, this is Arbo, SIM Tree Co's AI assistant. The owner can stop by for a free estimate. Which afternoon works for you?"</p>
+            <p class="note">Nothing sends without your tap. No answer sends nothing.</p>
+            <div class="actions">
+              <button class="btn btn-secondary" type="button">Decline</button>
+              <button class="btn btn-primary" type="button">Approve</button>
+            </div>
+          </article>
+        </div>
+
+        <nav class="tabbar" aria-label="Main">
+          <button type="button"><svg class="icon"><use href="#i-home"/></svg>Today</button>
+          <button type="button" aria-current="page"><span class="badge">3</span><svg class="icon"><use href="#i-inbox"/></svg>Approvals</button>
+          <button type="button"><svg class="icon"><use href="#i-users"/></svg>Crew</button>
+          <button type="button"><svg class="icon"><use href="#i-shield"/></svg>Safety</button>
+        </nav>
+      </div>
     </div>
+  </section>
 
-    <!-- 3. Dig block: the answer is never softer than this -->
-    <div class="banner banner-block" role="status">
-      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M6 6l12 12"/></svg>
-      <span>Can't confirm, don't dig.<br><span class="meta">VA811 status: pending (SIM-JOB-0042). Every utility must respond first.</span></span>
+  <!-- ============ SCREEN 3: CREW · GLOVE MODE ============ -->
+  <section class="screen" aria-label="Crew, glove mode">
+    <p class="hud-label">03 · Crew · Glove mode · paused</p>
+    <div class="phone">
+      <div class="app">
+        <div class="statusbar"><span>8:20</span><span>SIM</span></div>
+        <header class="appbar">
+          <span class="brandmark"><svg class="icon"><use href="#i-helmet"/></svg></span>
+          <div class="appbar-title"><h1>Crew <span class="id">SIM-Alpha</span></h1><p>Lead · <span class="id">SIM-Alder</span></p></div>
+          <span class="sys-pill is-paused"><span class="live-dot"></span>Paused</span>
+        </header>
+
+        <div class="content">
+          <!-- Safe mode: Jack's required wording, word for word -->
+          <div class="alert banner-paused" role="status">
+            <span class="alert-icon"><svg class="icon icon-lg"><use href="#i-pause"/></svg></span>
+            <div><strong>Arbo paused, hand work allowed, fixed limits still apply (power-line distance, aloft rules), log it afterward.</strong></div>
+          </div>
+
+          <section class="card">
+            <div class="section-head" style="margin:0"><h2 class="hud-label">Aloft state</h2><span class="hud-label">Only the lead lowers it</span></div>
+            <div class="segmented" role="group" aria-label="Aloft state">
+              <button type="button" aria-pressed="false"><svg class="icon icon-lg"><use href="#i-arrow-down"/></svg>On the ground</button>
+              <button type="button" aria-pressed="false"><svg class="icon icon-lg"><use href="#i-arrow-up"/></svg>Aloft</button>
+              <button type="button" aria-pressed="true"><svg class="icon icon-lg"><use href="#i-question"/></svg>Unknown: counts as aloft</button>
+            </div>
+            <button class="btn btn-secondary btn-glove" type="button"><svg class="icon"><use href="#i-check"/></svg>All on ground</button>
+          </section>
+
+          <div class="alert banner-block" role="status">
+            <span class="alert-icon"><svg class="icon icon-lg"><use href="#i-ban"/></svg></span>
+            <div>
+              <strong>Can't confirm, don't dig.</strong>
+              <p>VA811 status: pending · <span class="id">SIM-JOB-0043</span>. Every utility has to respond first.</p>
+            </div>
+          </div>
+
+          <article class="card">
+            <div class="card-head">
+              <div class="grow">
+                <span class="hud-label">Now · 101 Simulation Row</span>
+                <h3><span class="id">SIM-JOB-0042</span> · Removal</h3>
+              </div>
+            </div>
+            <div class="chip-row"><span class="chip chip-warning">L7 Review needed</span><span class="chip chip-accent">Last verified <time>09-20</time></span></div>
+            <ul class="flags" aria-label="Site flags">
+              <li><svg class="icon"><use href="#i-flag"/></svg><span>Utility pedestal by the back fence (SIM). Ground contact set to yes.</span></li>
+              <li><svg class="icon"><use href="#i-flag"/></svg><span>Power line along the street side (SIM).</span></li>
+            </ul>
+            <p class="note">Flags are listed, never counted. Approximate, from city records. Not a survey.</p>
+            <button class="btn btn-primary btn-glove" type="button"><svg class="icon"><use href="#i-tree"/></svg>Confirm the marked tree</button>
+          </article>
+
+          <div class="card">
+            <div class="task">
+              <span class="t-icon"><svg class="icon icon-lg"><use href="#i-list"/></svg></span>
+              <div><strong>Daily safety check</strong><p class="small muted">5 questions · paid time · after clock-in</p></div>
+              <svg class="icon"><use href="#i-chevron"/></svg>
+            </div>
+          </div>
+
+          <div class="alert banner-unknown" role="status">
+            <span class="alert-icon"><svg class="icon"><use href="#i-cloud"/></svg></span>
+            <div><strong>Storm status can't be confirmed.</strong><p>The declaration source isn't answering.</p></div>
+          </div>
+        </div>
+
+        <nav class="tabbar" aria-label="Crew">
+          <button type="button" aria-current="page"><svg class="icon"><use href="#i-home"/></svg>Today</button>
+          <button type="button"><svg class="icon"><use href="#i-tree"/></svg>Job</button>
+          <button type="button"><svg class="icon"><use href="#i-shield"/></svg>Safety</button>
+          <button type="button"><svg class="icon"><use href="#i-helmet"/></svg>Me</button>
+        </nav>
+      </div>
     </div>
+  </section>
 
-    <!-- 4. Can't-confirm state: a dead feed is named, never shown as zero -->
-    <div class="banner banner-unknown" role="status">
-      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16h.01"/></svg>
-      <span>Storm status can't be confirmed. The declaration source isn't answering.</span>
-    </div>
-
-    <h2 class="section-title">Waiting on you</h2>
-
-    <!-- 5. Deploy request: mirrors the deploy tool -->
-    <article class="card">
-      <h3>Deploy request</h3>
-      <p class="meta">Test setup. Nothing will be deployed, whatever you answer.</p>
-      <dl class="kv">
-        <dt>Target</dt><dd>SIM-bundle-0007</dd>
-        <dt>Reason</dt><dd>SIMULATED: fix to the call summary wording</dd>
-      </dl>
-      <p>No answer in <span class="countdown num">1:58</span> counts as <strong>no</strong>.</p>
-      <div class="actions">
-        <button class="btn btn-secondary" type="button">No</button>
-        <button class="btn btn-primary" type="button">Yes</button>
-      </div>
-    </article>
-
-    <!-- 6. Ordinary approval -->
-    <article class="card">
-      <h3>Text to SIM-Customer-A</h3>
-      <p>"Hi, this is Arbo, SIM Tree Co's AI assistant. The owner can stop by for a free estimate. Which afternoon works for you?"</p>
-      <p class="meta">Nothing sends without your tap. No answer sends nothing.</p>
-      <div class="actions">
-        <button class="btn btn-secondary" type="button">Decline</button>
-        <button class="btn btn-primary" type="button">Approve</button>
-      </div>
-    </article>
-
-    <!-- 7. Safety change: its own card, Jack's review first, never batched -->
-    <article class="card safety-change">
-      <span class="chip chip-warning"><span class="dot"></span>Safety change: can't be batch-approved</span>
-      <h3>Jack's review</h3>
-      <p><strong>Blocked:</strong> SIMULATED: shortens the aloft stale timeout check. Needs your fresh two-step check.</p>
-      <h3>The change</h3>
-      <p class="meta">SIM proposal 0003. Risk review: separate Claude Code session (SIM).</p>
-      <div class="actions">
-        <button class="btn btn-secondary" type="button">Decline</button>
-        <button class="btn btn-primary" type="button">Override: needs two-step check</button>
-      </div>
-    </article>
-
-    <h2 class="section-title">Today</h2>
-
-    <!-- 8. Job card with permit label and aloft state -->
-    <article class="card">
-      <h3>SIM-JOB-0042 · 101 Simulation Row</h3>
-      <div>
-        <span class="chip chip-warning"><span class="dot"></span>L7 REVIEW NEEDED</span>
-      </div>
-      <p class="meta">Last verified <time>2026-09-20</time> (SIM snapshot). <span class="badge-note">Approximate, from city records. Not a survey.</span></p>
-      <p class="meta">Aloft state</p>
-      <div class="aloft" role="group" aria-label="Aloft state">
-        <span>On the ground</span>
-        <span>Aloft</span>
-        <span aria-current="true">Unknown: counts as aloft</span>
-      </div>
-    </article>
-
-    <!-- 9. Flags: listed, never counted, never "none" -->
-    <article class="card">
-      <h3>Site flags</h3>
-      <p>Utility pedestal seen near the back fence (SIM). Ground contact set to yes.</p>
-      <p class="rule">Flags are listed, never counted. No screen ever shows a zero-flags or all-good state.</p>
-    </article>
-
-  </main>
-
-  <nav class="tabbar" aria-label="Main">
-    <button type="button" aria-current="page">Today</button>
-    <button type="button">Approvals</button>
-    <button type="button">Crew</button>
-    <button type="button">Safety</button>
-  </nav>
-</div>
+</main>
 
 <script>
   // Theme switch only. No network, no storage.
   (function () {
     var root = document.documentElement;
     var btn = document.getElementById('theme');
+    var label = btn.querySelector('span');
     btn.addEventListener('click', function () {
       var sun = root.getAttribute('data-theme') !== 'sunlight';
       root.setAttribute('data-theme', sun ? 'sunlight' : 'cockpit');
-      btn.textContent = sun ? 'Cockpit' : 'Sunlight';
+      label.textContent = sun ? 'Cockpit theme' : 'Sunlight theme';
     });
   })();
 </script>
