@@ -10,15 +10,30 @@ says whether the stricter reading is for **safety**, **privacy** or **money**.
    accept, an error or garbage are all no.
 2. **A client that can't ask Mike means no** (safety). The question isn't
    skipped, and the answer is recorded as no.
-3. **A late "yes" is ignored** (safety). It's logged as an unexpected
-   response and can't change a decision already recorded as no.
+3. **No time limit on your decisions** (your ruling, Sep 26, 2026). The
+   deploy question waits for as long as you take. Nothing happens while it
+   waits, and silence never becomes a yes or a no. Other requests are
+   answered meanwhile. A second deploy request waits its turn (safety: one
+   decision at a time). A client that disconnects counts as no, and nothing
+   happens.
 4. **No log, no call** (safety). If the call log can't be written, the call
    is refused and nothing runs, including the deploy question.
 5. **Strict arguments** (safety and privacy). Unknown arguments are refused.
    The read tools accept no file paths, so they can only read their two
    fixed files.
-6. **Deploy timeout: 120 seconds by default** (safety). The handoff didn't
-   give a number. **Mike sets this.**
+6. **This replaces two written rules; please confirm you meant both:**
+   - the handoff's "a timeout counts as no" (and its test);
+   - the brief's approval expiry (v2 D-3, 2.1: "unanswered approvals send
+     nothing ... on expiry, the safe default applies, alert Mike").
+
+   Nothing unsafe follows from removing them, because an unanswered item
+   still sends and deploys nothing. But the brief's expiry also **alerted you
+   and sent a holding text**, and without a time limit that alert never
+   fires. **Do you want a reminder that doesn't decide anything,** for
+   example "still waiting on you"? It isn't built.
+   **Practical note:** some MCP clients give up on a tool call after their
+   own wait. If one does, it disconnects, which is recorded as no, and
+   nothing happens.
 7. **The log is tamper-evident, not tamper-proof** (safety). It's
    hash-chained, so edits, deletions and reordering are detected (tested).
    The brief's database-enforced write-once log is later work.
@@ -111,4 +126,4 @@ says whether the stricter reading is for **safety**, **privacy** or **money**.
 | Hard-coded web addresses | **0** in the code or data (tested). |
 | Packages | **0.** Python standard library only. |
 | Real credentials, names, addresses or phone numbers | **0.** All data is tagged `SIM` (tested). |
-| Tests | **32 of 32 pass** (`TEST_RESULTS.txt`). Four planted bugs were each caught, which shows the tests can fail: a decline treated as yes, a skipped log entry, a read tool that writes, and an outside font link in the skin. |
+| Tests | **34 of 34 pass** (`TEST_RESULTS.txt`). Four planted bugs were each caught, which shows the tests can fail: a decline treated as yes, a skipped log entry, a read tool that writes, and an outside font link in the skin. |

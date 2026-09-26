@@ -9,8 +9,14 @@ log cannot be written, the call is refused.
 
 How deploy asks Mike: MCP "elicitation" -- the server sends the client an
 `elicitation/create` request, and the client shows the question to the person
-at the keyboard. Only an explicit "yes" counts. Decline, cancel, an error, a
-client that cannot ask, or no answer before the timeout are all "no".
+at the keyboard. Only an explicit "yes" counts.
+
+NO TIME LIMIT (Mike, Sep 26, 2026: "There should be no time limits at all
+when it comes to my decision"). The question waits for as long as Mike takes.
+While it waits, nothing happens: silence is never approval, and silence
+never turns into a decision. Other requests keep being answered meanwhile; only a
+second deploy request waits its turn. Decline, cancel, an error, a client that
+cannot ask, or a client that disconnects are all "no".
 Whatever the answer, NOTHING is deployed in this build.
 """
 
@@ -20,14 +26,12 @@ import os
 import queue
 import sys
 import threading
-import time
 
 from . import tools
 from .calllog import CallLog
 
 SUPPORTED_VERSIONS = ("2025-11-25", "2025-06-18")
 DEFAULT_VERSION = "2025-06-18"
-DEFAULT_DEPLOY_TIMEOUT_S = 120.0
 
 # Recorded on every deploy answer. The client prompt does not prove WHO answered.
 IDENTITY_NOTE = "answered at the MCP client prompt; identity not verified (no two-step check in this build)"
@@ -40,11 +44,10 @@ class LogUnavailable(Exception):
 
 
 class Server:
-    def __init__(self, data_dir, log_path, write, deploy_timeout_s=DEFAULT_DEPLOY_TIMEOUT_S):
+    def __init__(self, data_dir, log_path, write):
         self.data_dir = data_dir
         self.log = CallLog(log_path)
         self.write = write  # function(dict) -> sends one message to the client
-        self.deploy_timeout_s = deploy_timeout_s
         self.inbox = queue.Queue()
         self.deferred = []
         self.client_can_ask = False
@@ -163,10 +166,10 @@ class Server:
         }
 
     def _ask_mike(self, args):
-        """Send elicitation/create and wait for the matching answer, up to the timeout."""
+        """Send elicitation/create and wait for the answer, with no time limit."""
         self._elicit_counter += 1
         elicit_id = f"arbo-elicit-{self._elicit_counter}"
-        self._log("deploy_question_sent", elicit_id=elicit_id, timeout_s=self.deploy_timeout_s)
+        self._log("deploy_question_sent", elicit_id=elicit_id, time_limit="none")
         self._send({
             "jsonrpc": "2.0",
             "id": elicit_id,
@@ -175,20 +178,13 @@ class Server:
                 "message": (
                     f"Arbo deploy request (TEST SETUP -- nothing will be deployed).\n"
                     f"Target: {args['target']}\nReason: {args['reason']}\n"
-                    f"No answer within {int(self.deploy_timeout_s)} seconds counts as NO."
+                    f"No time limit: nothing happens until you answer."
                 ),
                 "requestedSchema": tools.ELICIT_SCHEMA,
             },
         })
-        deadline = time.monotonic() + self.deploy_timeout_s
         while True:
-            remaining = deadline - time.monotonic()
-            if remaining <= 0:
-                return None, "no answer before the timeout"
-            try:
-                msg = self.inbox.get(timeout=remaining)
-            except queue.Empty:
-                return None, "no answer before the timeout"
+            msg = self.inbox.get()  # no time limit: waits for as long as Mike takes
             if msg is _EOF:
                 self.deferred.append(_EOF)
                 return None, "client disconnected before answering"
@@ -196,7 +192,10 @@ class Server:
                 if "error" in msg:
                     return None, "client returned an error instead of an answer"
                 return msg.get("result"), "answered"
-            self.deferred.append(msg)  # anything else waits until the deploy call finishes
+            if _is_deploy_call(msg):
+                self.deferred.append(msg)  # one deploy question at a time
+            else:
+                self.handle(msg)  # everything else is answered while Mike decides
 
     # --- output ------------------------------------------------------------
     def _send(self, message):
@@ -212,6 +211,11 @@ class Server:
             self._log(event, **fields)
         except LogUnavailable:
             pass  # nothing is executed on this path, so there is nothing to refuse
+
+
+def _is_deploy_call(msg):
+    return (isinstance(msg, dict) and msg.get("method") == "tools/call"
+            and isinstance(msg.get("params"), dict) and msg["params"].get("name") == "deploy")
 
 
 def _tool_result(payload, is_error=False):
@@ -235,10 +239,7 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="Arbo test MCP server (stdio). Synthetic data only.")
     parser.add_argument("--data-dir", default=os.path.join(here, "data"))
     parser.add_argument("--log", default=os.path.join(here, "logs", "calls.jsonl"))
-    parser.add_argument("--deploy-timeout", type=float, default=DEFAULT_DEPLOY_TIMEOUT_S)
     opts = parser.parse_args(argv)
-    if opts.deploy_timeout <= 0:
-        parser.error("--deploy-timeout must be positive")
 
     out_lock = threading.Lock()
 
@@ -247,7 +248,7 @@ def main(argv=None):
             sys.stdout.write(json.dumps(message) + "\n")
             sys.stdout.flush()
 
-    server = Server(opts.data_dir, opts.log, write, opts.deploy_timeout)
+    server = Server(opts.data_dir, opts.log, write)
     threading.Thread(target=_reader, args=(sys.stdin, server.inbox), daemon=True).start()
     server.run()
 

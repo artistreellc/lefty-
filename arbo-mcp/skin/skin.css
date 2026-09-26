@@ -235,15 +235,11 @@ h1, h2, h3, h4, p { margin: 0; }
 .timeline .t-title { font-weight: var(--weight-bold); }
 .timeline .t-meta { display: flex; flex-wrap: wrap; gap: var(--space-2); margin-top: 6px; }
 
-/* ================= Countdown ring ================= */
-.countdown { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4); border-radius: var(--radius-md); background: var(--surface-3); }
-.ring { position: relative; width: 88px; height: 88px; flex: none; }
-.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.ring circle { fill: none; stroke-width: 7; }
-.ring .track { stroke: var(--hairline-strong); }
-.ring .fill { stroke: var(--accent-2); stroke-linecap: round; }
-.ring .time { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--font-mono); font-size: var(--text-lg); font-weight: var(--weight-bold); }
-.countdown strong { display: block; font-size: var(--text-lg); font-weight: var(--weight-black); }
+/* ================= Waiting on the owner (no time limit, ever) ================= */
+.waiting { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4); border-radius: var(--radius-md); background: var(--surface-3); }
+.waiting strong { display: block; font-size: var(--text-lg); font-weight: var(--weight-black); line-height: 1.2; }
+.waiting-orb { position: relative; width: 56px; height: 56px; flex: none; border-radius: 50%; display: grid; place-items: center; background: var(--accent-wash); color: var(--accent-2); }
+.waiting-orb > span { width: 16px; height: 16px; border-radius: 50%; background: currentColor; animation: pulse 2.4s var(--ease) infinite; }
 
 /* ================= Buttons ================= */
 .actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-3); }

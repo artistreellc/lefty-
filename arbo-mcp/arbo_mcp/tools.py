@@ -48,7 +48,7 @@ TOOL_DEFINITIONS = [
     {
         "name": "deploy",
         "description": (
-            "Asks Mike for a yes or no and waits. No answer counts as no. "
+            "Asks Mike for a yes or no and waits with no time limit; nothing happens until he answers. "
             "In this build it deploys NOTHING: it only records the request and the answer."
         ),
         "inputSchema": {
@@ -142,11 +142,12 @@ def decide(elicit_result):
     """Turn the client's answer into "yes" or "no".
 
     ONLY an explicit yes counts: action "accept" AND decision exactly "yes".
-    Decline, cancel, a missing or malformed answer, an error, or a timeout
-    (passed in as None) are all "no". Silence is never approval.
+    Decline, cancel, a missing or malformed answer, an error, or a client
+    that disconnected (passed in as None) are all "no". There is no time
+    limit, so silence never becomes an answer; it just means nothing happens.
     """
     if not isinstance(elicit_result, dict):
-        return "no", "no answer (timeout, error, or no response)"
+        return "no", "no answer (error, disconnect, or no response)"
     action = elicit_result.get("action")
     if action != "accept":
         return "no", f"answer was '{action}', not an explicit yes"

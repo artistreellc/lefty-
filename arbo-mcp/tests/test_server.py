@@ -48,14 +48,14 @@ class Harness:
     server asks Mike: return a response dict to send, or None to stay silent.
     """
 
-    def __init__(self, can_ask=True, answer_elicitation=None, deploy_timeout_s=2.0, log_path=None):
+    def __init__(self, can_ask=True, answer_elicitation=None, log_path=None):
         self.tmp = tempfile.mkdtemp(prefix="arbo-mcp-test-")
         self.data_dir = os.path.join(self.tmp, "data")
         shutil.copytree(os.path.join(ROOT, "data"), self.data_dir)
         self.log_path = log_path or os.path.join(self.tmp, "calls.jsonl")
         self.outbox = queue.Queue()
         self.answer_elicitation = answer_elicitation or (lambda req: None)
-        self.srv = server.Server(self.data_dir, self.log_path, self.outbox.put, deploy_timeout_s)
+        self.srv = server.Server(self.data_dir, self.log_path, self.outbox.put)
         self.thread = threading.Thread(target=self.srv.run, daemon=True)
         self.thread.start()
         self.elicitations = []
@@ -96,6 +96,14 @@ class Harness:
 
     def log_entries(self):
         return calllog.CallLog(self.log_path).entries()
+
+    def wait_for(self, predicate, timeout=10):
+        """Pull messages from the server until one matches (test-harness patience only)."""
+        deadline = time.monotonic() + timeout
+        while True:
+            msg = self.outbox.get(timeout=max(0.01, deadline - time.monotonic()))
+            if predicate(msg):
+                return msg
 
     def close(self):
         self.srv.inbox.put(server._EOF)
@@ -253,14 +261,15 @@ class DeployNeedsMikesYes(unittest.TestCase):
         finally:
             h.close()
 
-    def test_question_shows_target_reason_and_the_timeout_rule(self):
+    def test_question_shows_target_reason_and_that_there_is_no_time_limit(self):
         h = Harness(answer_elicitation=accept("no"))
         try:
             h.call("deploy", {"target": "bundle-abc", "reason": "try it"})
             message = h.elicitations[0]["params"]["message"]
             self.assertIn("bundle-abc", message)
             self.assertIn("try it", message)
-            self.assertIn("counts as NO", message)
+            self.assertIn("No time limit", message)
+            self.assertNotIn("seconds", message)
             self.assertIn("nothing will be deployed", message)
         finally:
             h.close()
@@ -271,48 +280,99 @@ class DeployNeedsMikesYes(unittest.TestCase):
             self.assertNotIn(forbidden, source)
 
 
-class TimeoutCountsAsNo(unittest.TestCase):
-    def test_silence_until_the_deadline_is_no(self):
-        h = Harness(answer_elicitation=lambda req: None, deploy_timeout_s=0.3)
-        try:
-            start = time.monotonic()
-            out, _ = h.call("deploy", {"target": "test-bundle", "reason": "unit test"})
-            self.assertGreaterEqual(time.monotonic() - start, 0.3)
-            self.assertEqual(out["decision"], "no")
-            self.assertIn("timeout", out["why"])
-            self.assertFalse(out["deployed"])
-        finally:
-            h.close()
+def deploy_msg(msg_id, target="t"):
+    return {"jsonrpc": "2.0", "id": msg_id, "method": "tools/call",
+            "params": {"name": "deploy", "arguments": {"target": target, "reason": "r"}}}
 
-    def test_a_yes_that_arrives_after_the_timeout_changes_nothing(self):
-        h = Harness(answer_elicitation=lambda req: None, deploy_timeout_s=0.2)
+
+def is_question(msg):
+    return msg.get("method") == "elicitation/create"
+
+
+def is_reply(msg_id):
+    return lambda msg: msg.get("id") == msg_id and "method" not in msg
+
+
+def answer(h, question, decision):
+    h.send_raw({"jsonrpc": "2.0", "id": question["id"],
+                "result": {"action": "accept", "content": {"decision": decision}}})
+
+
+class NoTimeLimitOnMikesDecision(unittest.TestCase):
+    """Mike, Sep 26, 2026: "There should be no time limits at all when it comes to my decision."
+
+    The deploy question waits for as long as Mike takes. Nothing happens while
+    it waits, and silence never turns into an answer.
+    """
+
+    def test_there_is_no_time_limit_anywhere_in_the_server(self):
+        source = (read_text(os.path.join(ROOT, "arbo_mcp", "server.py"))
+                  + read_text(os.path.join(ROOT, "arbo_mcp", "tools.py"))).lower()
+        for word in ("timeout", "deadline", "monotonic", "expire", "time.sleep"):
+            self.assertFalse(word in source, f"'{word}' found in the server code")
+        with self.assertRaises(SystemExit), mock.patch("sys.stderr"):
+            server.main(["--deploy-timeout", "5"])
+
+    def test_waits_as_long_as_it_takes_and_decides_nothing_meanwhile(self):
+        h = Harness()
         try:
-            out, _ = h.call("deploy", {"target": "test-bundle", "reason": "unit test"})
-            self.assertEqual(out["decision"], "no")
-            late_id = h.elicitations[0]["id"]
-            h.send_raw({"jsonrpc": "2.0", "id": late_id, "result": {"action": "accept", "content": {"decision": "yes"}}})
-            h.request("ping")  # let the server process the late answer
+            h.send_raw(deploy_msg(100))
+            question = h.wait_for(is_question)
+            time.sleep(1.5)  # far longer than any reply takes; still waiting
+            self.assertTrue(h.outbox.empty(), "no reply while Mike hasn't answered")
             events = [e["event"] for e in h.log_entries()]
-            self.assertIn("unexpected_response", events)
-            decisions = [e for e in h.log_entries() if e["event"] == "deploy_decision"]
-            self.assertEqual([d["decision"] for d in decisions], ["no"])
+            self.assertIn("deploy_question_sent", events)
+            self.assertNotIn("deploy_decision", events, "nothing is decided while waiting")
+            answer(h, question, "yes")
+            out = json.loads(h.wait_for(is_reply(100))["result"]["content"][0]["text"])
+            self.assertEqual((out["decision"], out["deployed"]), ("yes", False))
         finally:
             h.close()
 
-    def test_other_requests_during_the_wait_are_answered_afterwards(self):
-        h = None
-
-        def ping_then_yes(req):
-            # While the server is waiting on Mike, another request arrives.
-            h.send_raw({"jsonrpc": "2.0", "id": 999, "method": "ping"})
-            return accept("yes")(req)
-
-        h = Harness(answer_elicitation=ping_then_yes)
+    def test_other_requests_are_answered_while_mike_decides(self):
+        h = Harness()
         try:
-            out, _ = h.call("deploy", {"target": "t", "reason": "r"})
-            self.assertEqual(out["decision"], "yes")
-            later = h.outbox.get(timeout=5)
-            self.assertEqual((later["id"], later["result"]), (999, {}))
+            h.send_raw(deploy_msg(100))
+            question = h.wait_for(is_question)
+            h.send_raw({"jsonrpc": "2.0", "id": 101, "method": "tools/call",
+                        "params": {"name": "read_logs", "arguments": {"limit": 1}}})
+            reply = h.wait_for(lambda m: "method" not in m)
+            self.assertEqual(reply["id"], 101, "read_logs is answered before the deploy decision")
+            self.assertEqual(h.srv.inbox.qsize(), 0)
+            answer(h, question, "no")
+            out = json.loads(h.wait_for(is_reply(100))["result"]["content"][0]["text"])
+            self.assertEqual(out["decision"], "no")
+        finally:
+            h.close()
+
+    def test_a_second_deploy_request_waits_its_turn(self):
+        h = Harness()
+        try:
+            h.send_raw(deploy_msg(100, "first"))
+            q1 = h.wait_for(is_question)
+            h.send_raw(deploy_msg(101, "second"))
+            h.send_raw({"jsonrpc": "2.0", "id": 102, "method": "ping"})
+            self.assertEqual(h.wait_for(lambda m: "method" not in m)["id"], 102)
+            self.assertTrue(h.outbox.empty(), "only one question at a time")
+            answer(h, q1, "no")
+            self.assertEqual(h.wait_for(lambda m: "method" not in m)["id"], 100)
+            q2 = h.wait_for(is_question)
+            self.assertIn("second", q2["params"]["message"])
+            answer(h, q2, "yes")
+            out = json.loads(h.wait_for(is_reply(101))["result"]["content"][0]["text"])
+            self.assertEqual((out["decision"], out["deployed"]), ("yes", False))
+        finally:
+            h.close()
+
+    def test_a_disconnect_while_waiting_means_nothing_happens(self):
+        h = Harness()
+        try:
+            h.send_raw(deploy_msg(100))
+            h.wait_for(is_question)
+            h.send_raw(server._EOF)
+            out = json.loads(h.wait_for(is_reply(100))["result"]["content"][0]["text"])
+            self.assertEqual((out["decision"], out["deployed"]), ("no", False))
+            self.assertIn("disconnected", out["why"])
         finally:
             h.close()
 
@@ -373,7 +433,7 @@ class EveryCallIsLogged(unittest.TestCase):
         h.log_path = blocked_dir  # opening a directory for append always fails
         h.outbox = queue.Queue()
         h.answer_elicitation = accept("yes")
-        h.srv = server.Server(h.data_dir, h.log_path, h.outbox.put, 1.0)
+        h.srv = server.Server(h.data_dir, h.log_path, h.outbox.put)
         h.thread = threading.Thread(target=h.srv.run, daemon=True)
         h.thread.start()
         h.elicitations = []
@@ -451,11 +511,11 @@ main(sys.argv[2:])
 
 
 class EndToEndOverStdio(unittest.TestCase):
-    def run_session(self, messages_and_answers, timeout_s="5"):
+    def run_session(self, messages_and_answers):
         tmp = tempfile.mkdtemp()
         log = os.path.join(tmp, "calls.jsonl")
         proc = subprocess.Popen(
-            [sys.executable, "-c", AUDIT_WRAPPER, ROOT, "--log", log, "--deploy-timeout", timeout_s],
+            [sys.executable, "-c", AUDIT_WRAPPER, ROOT, "--log", log],
             stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True,
         )
         replies = []
@@ -489,7 +549,7 @@ class EndToEndOverStdio(unittest.TestCase):
         self.assertTrue(ok, problem)
         return replies
 
-    def test_full_session_yes_then_timeout(self):
+    def test_full_session_yes_then_no(self):
         init = {"jsonrpc": "2.0", "id": 1, "method": "initialize",
                 "params": {"protocolVersion": "2025-06-18", "capabilities": {"elicitation": {}},
                            "clientInfo": {"name": "e2e", "version": "0"}}}
@@ -502,14 +562,14 @@ class EndToEndOverStdio(unittest.TestCase):
             ({"jsonrpc": "2.0", "id": 3, "method": "tools/call", "params": {"name": "read_logs", "arguments": {"limit": 2}}}, None),
             ({"jsonrpc": "2.0", "id": 4, "method": "tools/call", "params": {"name": "read_errors", "arguments": {}}}, None),
             (deploy(5), {"action": "accept", "content": {"decision": "yes"}}),
-            (deploy(6), None),  # never answered -> timeout -> no
-        ], timeout_s="1")
+            (deploy(6), {"action": "decline"}),
+        ])
         self.assertEqual(len(replies[1]["result"]["tools"]), 3)
         self.assertEqual(json.loads(replies[2]["result"]["content"][0]["text"])["count"], 2)
         yes = json.loads(replies[4]["result"]["content"][0]["text"])
-        silent = json.loads(replies[5]["result"]["content"][0]["text"])
+        declined = json.loads(replies[5]["result"]["content"][0]["text"])
         self.assertEqual((yes["decision"], yes["deployed"]), ("yes", False))
-        self.assertEqual((silent["decision"], silent["deployed"]), ("no", False))
+        self.assertEqual((declined["decision"], declined["deployed"]), ("no", False))
 
     def test_the_audit_hook_really_blocks_network(self):
         proc = subprocess.run(

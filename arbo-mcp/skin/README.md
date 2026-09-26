@@ -8,7 +8,7 @@ to see it. It needs no connection.
 |---|---|
 | `tokens.css` | The only place colors, type, spacing and sizes are defined. Two themes: **cockpit** (dark, default) and **sunlight** (light, maximum contrast). |
 | `skin.css` | The components, built only from the tokens. |
-| `template.html` | Three real screens built from the skin, with SIMULATED data: **Owner Today** (instrument tiles, the queue of items waiting on you, the crew's day), **Owner Approval** (deploy request with a countdown ring, safety-change card, text approval) and **Crew glove mode** (paused state, three-state aloft control, dig block, job flags, safety check). Wide screens show them side by side in phone frames. Phones show them full width. |
+| `template.html` | Three real screens built from the skin, with SIMULATED data: **Owner Today** (instrument tiles, the queue of items waiting on you, the crew's day), **Owner Approval** (deploy request waiting with no time limit, safety-change card, text approval) and **Crew glove mode** (paused state, three-state aloft control, dig block, job flags, safety check). Wide screens show them side by side in phone frames. Phones show them full width. |
 
 **Look (v2).** This is Arbo's approved cockpit direction:
 - a near-black instrument panel with a faint grid and a violet glow;
@@ -22,7 +22,7 @@ screen is the biggest.
 
 **Building a new screen:** copy one `.app` block from `template.html`, keep
 the app bar and tab bar, and assemble the content from the existing parts
-(`alert`, `tile`, `card`, `queue`, `timeline`, `countdown`, `segmented`,
+(`alert`, `tile`, `card`, `queue`, `timeline`, `waiting`, `segmented`,
 `flags`, `chip`, `btn`). Put any ID in `<span class="id">` so it never
 splits across lines.
 
@@ -43,8 +43,10 @@ splits across lines.
 7. **Aloft has three states,** and Unknown is shown as "counts as aloft."
 8. **Safety changes get their own card:** Jack's review first, and never a
    batch checkbox.
-9. **Every approval card says what happens with no answer** ("No answer sends
-   nothing," "counts as no").
+9. **No time limits on the owner's decisions** (owner's ruling, Sep 26, 2026). Screens
+   never show a countdown or an expiry. A waiting decision says "No time
+   limit. Nothing happens until you answer." Every approval card says what
+   happens with no answer ("No answer sends nothing").
 10. **Banned words never appear:** "clear," "healthy," "no disease found,"
     "no hazards," "someone will call you back," "Suffolk," "TCIA." VA811's
     own status words appear only after the label "VA811 status:".

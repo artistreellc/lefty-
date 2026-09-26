@@ -19,7 +19,7 @@ A minimal MCP tool server with **exactly three tools**:
 |---|---|
 | `read_logs` | Read-only. Filters the synthetic test logs in `data/synthetic_logs.jsonl`. |
 | `read_errors` | Read-only. Reads a synthetic stand-in for error reports (`data/synthetic_errors.json`). It doesn't connect to Sentry. |
-| `deploy` | Asks Mike yes or no and waits. **Only an explicit "yes" counts**, and no answer counts as no. **It deploys nothing.** It records the request and the answer. |
+| `deploy` | Asks Mike yes or no and **waits with no time limit**. **Only an explicit "yes" counts**, and nothing happens until he answers. **It deploys nothing.** It records the request and the answer. |
 
 There are no other tools, no resources or prompts, and no hidden permissions.
 Every message the server receives is logged **before** it's acted on, and
@@ -32,10 +32,13 @@ server asks the MCP client to show a yes/no question to the person using it.
 
 - `accept` with the answer `yes` means **yes**.
 - Everything else means **no**: decline, cancel, accept without "yes", an
-  error, a malformed answer, a client that can't show questions, a
-  disconnect, or **no answer before the timeout** (default 120 seconds,
-  `--deploy-timeout`).
-- A "yes" that arrives after the timeout is logged and ignored.
+  error, a malformed answer, a client that can't show questions, or a
+  disconnect.
+- **No time limit** (Mike, Sep 26, 2026: *"There should be no time limits at
+  all when it comes to my decision"*). The question waits for as long as
+  Mike takes, and there's no setting to add one. While it waits, nothing
+  happens and silence never turns into an answer. Other requests keep being
+  answered; a second deploy request waits its turn.
 - **Every answer is recorded as "identity not verified."** The client prompt
   can't prove Mike is the one answering. See `REVIEW_FOR_MIKE.md`.
 
@@ -74,7 +77,7 @@ REVIEW_FOR_MIKE.md    stricter readings chosen, conflicts, questions
 
 ```sh
 python3 -m unittest discover -s tests -v                   # tests
-python3 -m arbo_mcp --deploy-timeout 120                    # server on stdio
+python3 -m arbo_mcp                                         # server on stdio
 python3 -c "from arbo_mcp.calllog import verify; print(verify('logs/calls.jsonl'))"
 ```
 

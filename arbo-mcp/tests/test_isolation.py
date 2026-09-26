@@ -111,5 +111,10 @@ class SkinWording(unittest.TestCase):
         self.assertIn("Call 911 now", text)
         self.assertIn("Can't confirm, don't dig.", text)
         self.assertIn("Unknown: counts as aloft", text)
+        # No time limits on the owner's decisions (Mike, Sep 26, 2026).
+        self.assertIn("No time limit", text)
+        for timer in ("countdown", "counts as no", "expires"):
+            self.assertNotIn(timer, text.lower())
+        self.assertIsNone(re.search(r">\s*\d{1,2}:\d{2}\s*left", text))
         # The 911 banner comes before every other banner.
         self.assertLess(text.index("banner-emergency\""), text.index("banner-paused\""))
