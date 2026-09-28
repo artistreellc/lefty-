@@ -48,14 +48,14 @@ class Harness:
     server asks Mike: return a response dict to send, or None to stay silent.
     """
 
-    def __init__(self, can_ask=True, answer_elicitation=None, log_path=None):
+    def __init__(self, can_ask=True, answer_elicitation=None, log_path=None, remind_every_s=3600.0):
         self.tmp = tempfile.mkdtemp(prefix="arbo-mcp-test-")
         self.data_dir = os.path.join(self.tmp, "data")
         shutil.copytree(os.path.join(ROOT, "data"), self.data_dir)
         self.log_path = log_path or os.path.join(self.tmp, "calls.jsonl")
         self.outbox = queue.Queue()
         self.answer_elicitation = answer_elicitation or (lambda req: None)
-        self.srv = server.Server(self.data_dir, self.log_path, self.outbox.put)
+        self.srv = server.Server(self.data_dir, self.log_path, self.outbox.put, remind_every_s)
         self.thread = threading.Thread(target=self.srv.run, daemon=True)
         self.thread.start()
         self.elicitations = []
@@ -280,9 +280,11 @@ class DeployNeedsMikesYes(unittest.TestCase):
             self.assertNotIn(forbidden, source)
 
 
-def deploy_msg(msg_id, target="t"):
-    return {"jsonrpc": "2.0", "id": msg_id, "method": "tools/call",
-            "params": {"name": "deploy", "arguments": {"target": target, "reason": "r"}}}
+def deploy_msg(msg_id, target="t", progress_token=None):
+    params = {"name": "deploy", "arguments": {"target": target, "reason": "r"}}
+    if progress_token is not None:
+        params["_meta"] = {"progressToken": progress_token}
+    return {"jsonrpc": "2.0", "id": msg_id, "method": "tools/call", "params": params}
 
 
 def is_question(msg):
@@ -305,11 +307,22 @@ class NoTimeLimitOnMikesDecision(unittest.TestCase):
     it waits, and silence never turns into an answer.
     """
 
-    def test_there_is_no_time_limit_anywhere_in_the_server(self):
-        source = (read_text(os.path.join(ROOT, "arbo_mcp", "server.py"))
-                  + read_text(os.path.join(ROOT, "arbo_mcp", "tools.py"))).lower()
-        for word in ("timeout", "deadline", "monotonic", "expire", "time.sleep"):
-            self.assertFalse(word in source, f"'{word}' found in the server code")
+    def test_the_only_thing_time_can_do_is_send_a_reminder(self):
+        import ast
+        src = read_text(os.path.join(ROOT, "arbo_mcp", "server.py"))
+        lowered = (src + read_text(os.path.join(ROOT, "arbo_mcp", "tools.py"))).lower()
+        for word in ("deadline", "expire", "time.sleep"):
+            self.assertFalse(word in lowered, f"'{word}' found in the server code")
+        # Every place the wait can wake up on the clock (queue.Empty) must send
+        # a reminder and keep waiting: no return, no raise, no decision.
+        handlers = [n for n in ast.walk(ast.parse(src)) if isinstance(n, ast.ExceptHandler)
+                    and "Empty" in ast.dump(n.type or ast.Name(id=""))]
+        self.assertEqual(len(handlers), 1)
+        body = ast.dump(ast.Module(body=handlers[0].body, type_ignores=[]))
+        self.assertIn("_remind", body)
+        self.assertTrue(isinstance(handlers[0].body[-1], ast.Continue))
+        for forbidden in ("Return(", "Raise(", "decide", "deploy_decision"):
+            self.assertNotIn(forbidden, body)
         with self.assertRaises(SystemExit), mock.patch("sys.stderr"):
             server.main(["--deploy-timeout", "5"])
 
@@ -375,6 +388,72 @@ class NoTimeLimitOnMikesDecision(unittest.TestCase):
             self.assertIn("disconnected", out["why"])
         finally:
             h.close()
+
+
+class RemindersDecideNothing(unittest.TestCase):
+    """Mike, Sep 28, 2026: yes to a "still waiting on you" reminder that decides nothing."""
+
+    def reminders(self, h):
+        return [e for e in h.log_entries() if e["event"] == "deploy_reminder"]
+
+    def test_reminders_go_out_while_waiting_and_decide_nothing(self):
+        h = Harness(remind_every_s=0.1)
+        try:
+            h.send_raw(deploy_msg(100, progress_token="tok-1"))
+            question = h.wait_for(is_question)
+            time.sleep(0.65)
+            logged = self.reminders(h)
+            self.assertGreaterEqual(len(logged), 4)
+            self.assertTrue(all(r["decided"] is False for r in logged))
+            self.assertNotIn("deploy_decision", [e["event"] for e in h.log_entries()])
+            notes = []
+            while not h.outbox.empty():
+                notes.append(h.outbox.get())
+            self.assertTrue(notes)
+            for n in notes:
+                self.assertEqual(n["method"], "notifications/progress")
+                self.assertEqual(n["params"]["progressToken"], "tok-1")
+                self.assertIn("Still waiting on you", n["params"]["message"])
+            self.assertEqual([n["params"]["progress"] for n in notes], sorted(n["params"]["progress"] for n in notes))
+            answer(h, question, "yes")
+            out = json.loads(h.wait_for(is_reply(100))["result"]["content"][0]["text"])
+            self.assertEqual((out["decision"], out["deployed"]), ("yes", False))
+        finally:
+            h.close()
+
+    def test_reminders_keep_their_schedule_during_steady_traffic(self):
+        h = Harness(remind_every_s=0.1)
+        try:
+            h.send_raw(deploy_msg(100))
+            question = h.wait_for(is_question)
+            for i in range(20):  # a ping every 30 ms, faster than the reminder interval
+                h.send_raw({"jsonrpc": "2.0", "id": 500 + i, "method": "ping"})
+                time.sleep(0.03)
+            self.assertGreaterEqual(len(self.reminders(h)), 3)
+            answer(h, question, "no")
+            h.wait_for(is_reply(100))
+        finally:
+            h.close()
+
+    def test_without_a_progress_token_reminders_are_only_logged(self):
+        h = Harness(remind_every_s=0.1)
+        try:
+            h.send_raw(deploy_msg(100))
+            question = h.wait_for(is_question)
+            time.sleep(0.35)
+            self.assertGreaterEqual(len(self.reminders(h)), 2)
+            self.assertTrue(h.outbox.empty(), "nothing is sent without a progress token")
+            answer(h, question, "no")
+            h.wait_for(is_reply(100))
+        finally:
+            h.close()
+
+    def test_the_reminder_interval_must_be_positive(self):
+        for bad in (0, -1):
+            with self.assertRaises(ValueError):
+                server.Server("d", "l", lambda m: None, bad)
+            with self.assertRaises(SystemExit), mock.patch("sys.stderr"):
+                server.main(["--remind-every-minutes", str(bad)])
 
 
 class EveryCallIsLogged(unittest.TestCase):

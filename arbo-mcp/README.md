@@ -39,6 +39,12 @@ server asks the MCP client to show a yes/no question to the person using it.
   Mike takes, and there's no setting to add one. While it waits, nothing
   happens and silence never turns into an answer. Other requests keep being
   answered; a second deploy request waits its turn.
+- **Reminders that decide nothing** (Mike, Sep 28, 2026). While a decision
+  waits, a "Still waiting on you" reminder goes out every
+  `--remind-every-minutes` (default **60**, Mike's to set). Each one is
+  logged. It's also sent to the client as an MCP progress notification when
+  the client asked for progress. A reminder never decides, cancels or ends
+  the wait (tested).
 - **Every answer is recorded as "identity not verified."** The client prompt
   can't prove Mike is the one answering. See `REVIEW_FOR_MIKE.md`.
 
@@ -77,7 +83,7 @@ REVIEW_FOR_MIKE.md    stricter readings chosen, conflicts, questions
 
 ```sh
 python3 -m unittest discover -s tests -v                   # tests
-python3 -m arbo_mcp                                         # server on stdio
+python3 -m arbo_mcp --remind-every-minutes 60               # server on stdio
 python3 -c "from arbo_mcp.calllog import verify; print(verify('logs/calls.jsonl'))"
 ```
 

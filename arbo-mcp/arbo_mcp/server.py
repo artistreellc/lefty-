@@ -17,6 +17,12 @@ While it waits, nothing happens: silence is never approval, and silence
 never turns into a decision. Other requests keep being answered meanwhile; only a
 second deploy request waits its turn. Decline, cancel, an error, a client that
 cannot ask, or a client that disconnects are all "no".
+
+REMINDERS (Mike, Sep 28, 2026: yes to a reminder that decides nothing). While
+the question waits, a "still waiting on you" reminder goes out every
+--remind-every-minutes (default 60, Mike's to set). A reminder is logged and,
+if the client gave a progress token, sent as an MCP progress notification.
+It never decides, cancels, or ends the wait.
 Whatever the answer, NOTHING is deployed in this build.
 """
 
@@ -26,12 +32,15 @@ import os
 import queue
 import sys
 import threading
+import time
 
 from . import tools
 from .calllog import CallLog
 
 SUPPORTED_VERSIONS = ("2025-11-25", "2025-06-18")
 DEFAULT_VERSION = "2025-06-18"
+DEFAULT_REMIND_EVERY_S = 60 * 60.0  # Mike's to set; a reminder never decides anything
+REMINDER_TEXT = "Still waiting on you. No time limit: nothing happens until you answer."
 
 # Recorded on every deploy answer. The client prompt does not prove WHO answered.
 IDENTITY_NOTE = "answered at the MCP client prompt; identity not verified (no two-step check in this build)"
@@ -44,8 +53,11 @@ class LogUnavailable(Exception):
 
 
 class Server:
-    def __init__(self, data_dir, log_path, write):
+    def __init__(self, data_dir, log_path, write, remind_every_s=DEFAULT_REMIND_EVERY_S):
+        if not remind_every_s > 0:
+            raise ValueError("remind_every_s must be positive")
         self.data_dir = data_dir
+        self.remind_every_s = remind_every_s
         self.log = CallLog(log_path)
         self.write = write  # function(dict) -> sends one message to the client
         self.inbox = queue.Queue()
@@ -120,6 +132,8 @@ class Server:
 
     # --- tools -------------------------------------------------------------
     def _call_tool(self, params):
+        meta = params.get("_meta")
+        progress_token = meta.get("progressToken") if isinstance(meta, dict) else None
         name = params.get("name")
         args = params.get("arguments")
         if name not in tools.TOOL_NAMES:
@@ -137,16 +151,16 @@ class Server:
         elif name == "read_errors":
             out = tools.read_errors(self.data_dir, args)
         else:
-            out = self._deploy(args)
+            out = self._deploy(args, progress_token)
         self._log("tool_finished", tool=name)
         return _tool_result(out)
 
-    def _deploy(self, args):
+    def _deploy(self, args, progress_token=None):
         self._log("deploy_requested", target=args["target"], reason=args["reason"])
         if not self.client_can_ask:
             answer, why = None, "client cannot show a question (no elicitation support)"
         else:
-            answer, why = self._ask_mike(args)
+            answer, why = self._ask_mike(args, progress_token)
         decision, decision_why = tools.decide(answer)
         if answer is None:
             decision_why = why
@@ -165,8 +179,11 @@ class Server:
             "note": "Recorded only. This build cannot deploy anything, whatever the answer.",
         }
 
-    def _ask_mike(self, args):
-        """Send elicitation/create and wait for the answer, with no time limit."""
+    def _ask_mike(self, args, progress_token=None):
+        """Send elicitation/create and wait for the answer, with no time limit.
+
+        The only thing the passage of time ever does here is send a reminder.
+        """
         self._elicit_counter += 1
         elicit_id = f"arbo-elicit-{self._elicit_counter}"
         self._log("deploy_question_sent", elicit_id=elicit_id, time_limit="none")
@@ -183,8 +200,16 @@ class Server:
                 "requestedSchema": tools.ELICIT_SCHEMA,
             },
         })
+        reminders = 0
+        next_reminder = time.monotonic() + self.remind_every_s
         while True:
-            msg = self.inbox.get()  # no time limit: waits for as long as Mike takes
+            try:
+                msg = self.inbox.get(block=True, timeout=max(0.0, next_reminder - time.monotonic()))
+            except queue.Empty:
+                reminders += 1
+                self._remind(elicit_id, reminders, progress_token)
+                next_reminder += self.remind_every_s
+                continue  # keep waiting: no time limit, the reminder decides nothing
             if msg is _EOF:
                 self.deferred.append(_EOF)
                 return None, "client disconnected before answering"
@@ -196,6 +221,15 @@ class Server:
                 self.deferred.append(msg)  # one deploy question at a time
             else:
                 self.handle(msg)  # everything else is answered while Mike decides
+
+    def _remind(self, elicit_id, count, progress_token):
+        self._safe_log("deploy_reminder", elicit_id=elicit_id, count=count, decided=False)
+        if progress_token is not None:
+            self._send({
+                "jsonrpc": "2.0",
+                "method": "notifications/progress",
+                "params": {"progressToken": progress_token, "progress": count, "message": REMINDER_TEXT},
+            })
 
     # --- output ------------------------------------------------------------
     def _send(self, message):
@@ -239,7 +273,11 @@ def main(argv=None):
     parser = argparse.ArgumentParser(description="Arbo test MCP server (stdio). Synthetic data only.")
     parser.add_argument("--data-dir", default=os.path.join(here, "data"))
     parser.add_argument("--log", default=os.path.join(here, "logs", "calls.jsonl"))
+    parser.add_argument("--remind-every-minutes", type=float, default=DEFAULT_REMIND_EVERY_S / 60,
+                        help="how often to remind Mike while a decision waits (reminders never decide)")
     opts = parser.parse_args(argv)
+    if not opts.remind_every_minutes > 0:
+        parser.error("--remind-every-minutes must be positive")
 
     out_lock = threading.Lock()
 
@@ -248,7 +286,7 @@ def main(argv=None):
             sys.stdout.write(json.dumps(message) + "\n")
             sys.stdout.flush()
 
-    server = Server(opts.data_dir, opts.log, write)
+    server = Server(opts.data_dir, opts.log, write, opts.remind_every_minutes * 60)
     threading.Thread(target=_reader, args=(sys.stdin, server.inbox), daemon=True).start()
     server.run()
 

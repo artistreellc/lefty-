@@ -27,10 +27,14 @@ says whether the stricter reading is for **safety**, **privacy** or **money**.
      nothing ... on expiry, the safe default applies, alert Mike").
 
    Nothing unsafe follows from removing them, because an unanswered item
-   still sends and deploys nothing. But the brief's expiry also **alerted you
-   and sent a holding text**, and without a time limit that alert never
-   fires. **Do you want a reminder that doesn't decide anything,** for
-   example "still waiting on you"? It isn't built.
+   still sends and deploys nothing. The brief's expiry also alerted you and
+   sent a holding text. **You said yes to a reminder instead (Sep 28, 2026),
+   and it's built:** "Still waiting on you" goes out every 60 minutes
+   (**your number to set**, `--remind-every-minutes`). It never decides,
+   cancels or ends the wait (tested, including with planted bugs). A holding
+   text to a customer isn't built; that would need your approval, like any
+   send. When reminders reach a phone later, the aloft rule applies: nothing
+   rings you while you're aloft.
    **Practical note:** some MCP clients give up on a tool call after their
    own wait. If one does, it disconnects, which is recorded as no, and
    nothing happens.
@@ -126,4 +130,4 @@ says whether the stricter reading is for **safety**, **privacy** or **money**.
 | Hard-coded web addresses | **0** in the code or data (tested). |
 | Packages | **0.** Python standard library only. |
 | Real credentials, names, addresses or phone numbers | **0.** All data is tagged `SIM` (tested). |
-| Tests | **34 of 34 pass** (`TEST_RESULTS.txt`). Four planted bugs were each caught, which shows the tests can fail: a decline treated as yes, a skipped log entry, a read tool that writes, and an outside font link in the skin. |
+| Tests | **38 of 38 pass** (`TEST_RESULTS.txt`). Six planted bugs were each caught, which shows the tests can fail: a decline treated as yes, a skipped log entry, a read tool that writes, an outside font link in the skin, a reminder that ends the wait with "no", and a reminder clock that resets on every message. |

@@ -1,4 +1,4 @@
-Test run: 2026-09-26T07:42:03Z  Python 3.11.15
+Test run: 2026-09-28T06:48:13Z  Python 3.11.15
 
 test_no_links_in_code_data_or_skin (test_isolation.NoLinksAnywhere.test_no_links_in_code_data_or_skin) ... ok
 test_python_imports_only_the_standard_library_and_itself (test_isolation.NothingFromOutside.test_python_imports_only_the_standard_library_and_itself) ... ok
@@ -28,14 +28,18 @@ test_no_web_addresses_in_the_code_or_data (test_server.NoNetworkAndSyntheticOnly
 test_a_disconnect_while_waiting_means_nothing_happens (test_server.NoTimeLimitOnMikesDecision.test_a_disconnect_while_waiting_means_nothing_happens) ... ok
 test_a_second_deploy_request_waits_its_turn (test_server.NoTimeLimitOnMikesDecision.test_a_second_deploy_request_waits_its_turn) ... ok
 test_other_requests_are_answered_while_mike_decides (test_server.NoTimeLimitOnMikesDecision.test_other_requests_are_answered_while_mike_decides) ... ok
-test_there_is_no_time_limit_anywhere_in_the_server (test_server.NoTimeLimitOnMikesDecision.test_there_is_no_time_limit_anywhere_in_the_server) ... ok
+test_the_only_thing_time_can_do_is_send_a_reminder (test_server.NoTimeLimitOnMikesDecision.test_the_only_thing_time_can_do_is_send_a_reminder) ... ok
 test_waits_as_long_as_it_takes_and_decides_nothing_meanwhile (test_server.NoTimeLimitOnMikesDecision.test_waits_as_long_as_it_takes_and_decides_nothing_meanwhile) ... ok
 test_data_files_are_unchanged_after_many_reads (test_server.ReadToolsCannotWrite.test_data_files_are_unchanged_after_many_reads) ... ok
 test_read_functions_themselves_refuse_to_write_under_a_guard (test_server.ReadToolsCannotWrite.test_read_functions_themselves_refuse_to_write_under_a_guard) ... ok
 test_read_tools_open_nothing_for_writing_except_the_call_log (test_server.ReadToolsCannotWrite.test_read_tools_open_nothing_for_writing_except_the_call_log) ... ok
 test_read_tools_return_synthetic_data (test_server.ReadToolsCannotWrite.test_read_tools_return_synthetic_data) ... ok
+test_reminders_go_out_while_waiting_and_decide_nothing (test_server.RemindersDecideNothing.test_reminders_go_out_while_waiting_and_decide_nothing) ... ok
+test_reminders_keep_their_schedule_during_steady_traffic (test_server.RemindersDecideNothing.test_reminders_keep_their_schedule_during_steady_traffic) ... ok
+test_the_reminder_interval_must_be_positive (test_server.RemindersDecideNothing.test_the_reminder_interval_must_be_positive) ... ok
+test_without_a_progress_token_reminders_are_only_logged (test_server.RemindersDecideNothing.test_without_a_progress_token_reminders_are_only_logged) ... ok
 
 ----------------------------------------------------------------------
-Ran 34 tests in 1.812s
+Ran 38 tests in 3.469s
 
 OK
